@@ -59,6 +59,11 @@ class BlockFactory
         if ($block instanceof AbstractBlock) {
             $block->setTemplateEngine($this->templateEngine);
             $block->setLayout($node);
+        
+            // ✅ Ajouter ces 2 lignes
+            if ($this->eventDispatcher !== null) {
+                $block->setEventDispatcher($this->eventDispatcher);
+            }
         }
 
         // Crée et attache les enfants récursivement
@@ -87,7 +92,13 @@ class BlockFactory
      */
     private function createBlock(string $name, array $attrs): BlockInterface
     {
-        $class    = $attrs['class']    ?? AbstractBlock::class;
+        $class = $attrs['class'] ?? '';
+        
+        if ($class === '') {
+            throw new \RuntimeException("No class defined for block [{$name}]. Attribute 'class' is required.");
+        }
+
+        
         $template = $attrs['template'] ?? '';
 
         if (!class_exists($class)) {

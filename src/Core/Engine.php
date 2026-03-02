@@ -8,6 +8,10 @@ use DataBuilder\Template\TemplateEngine;
 use DataBuilder\Router\Router;
 use DataBuilder\Controller\FrontController;
 
+use DataBuilder\Theme\ThemeManager;
+use DataBuilder\Cache\CacheManager;
+use DataBuilder\Event\EventDispatcher;
+
 
 class Engine
 {
@@ -18,6 +22,10 @@ class Engine
     private LayoutManager $layoutManager;
     private TemplateEngine $templateEngine;
     private Router $router;
+
+    private ThemeManager    $themeManager;
+    private CacheManager    $cacheManager;
+    private EventDispatcher $eventDispatcher;
 
     private function __construct(array $config)
     {
@@ -49,6 +57,7 @@ class Engine
         // Paths de base
         $basePath = $this->config['base_path'] ?? dirname(__DIR__, 2);
 
+        // ✅ Correct : la config chargée a priorité sur les defaults
         $this->config = array_merge([
             'base_path'     => $basePath,
             'themes_path'   => $basePath . '/themes',
@@ -58,13 +67,24 @@ class Engine
             'theme'         => 'base',
             'cache_enable'  => true,
             'debug'         => false,
-        ], $this->config);
+        ], $this->config); // $this->config en second = il écrase les defaults ✅
 
         // Boot des composants core
         $this->layoutManager  = new LayoutManager($this->config, $this->registry);
         $this->templateEngine = new TemplateEngine($this->config);
         $this->router         = new Router($this->config);
+
+        $this->themeManager    = new ThemeManager($this->config);
+        $this->cacheManager    = new CacheManager($this->config);
+        $this->eventDispatcher = new EventDispatcher();
+        
     }
+    
+    // Getters publics
+    public function getThemeManager(): ThemeManager       { return $this->themeManager; }
+    public function getCacheManager(): CacheManager       { return $this->cacheManager; }
+    public function getEventDispatcher(): EventDispatcher { return $this->eventDispatcher; }
+    
 
     public function dispatch(): void
     {

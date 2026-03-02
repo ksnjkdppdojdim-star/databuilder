@@ -40,33 +40,38 @@ class BlockFactory
      */
     public function createFromNode(array $node): BlockInterface
     {
-        $attrs    = $node['attributes'] ?? [];
-        $tag      = $node['tag'];
-        $name     = $attrs['name'] ?? uniqid('block_');
-
-        // Retourne l'instance en cache si déjà créée
+        // ✅ Si le nœud racine est <layout>, on descend directement au premier enfant utile
+        if ($node['tag'] === 'layout') {
+            foreach ($node['children'] as $child) {
+                if (in_array($child['tag'], ['block', 'container'])) {
+                    return $this->createFromNode($child);
+                }
+            }
+            throw new \RuntimeException("Layout node has no renderable children.");
+        }
+    
+        $attrs = $node['attributes'] ?? [];
+        $tag   = $node['tag'];
+        $name  = $attrs['name'] ?? uniqid('block_');
+    
         if (isset($this->instances[$name])) {
             return $this->instances[$name];
         }
-
+    
         $block = match($tag) {
             'container' => $this->createContainer($name, $attrs),
             'block'     => $this->createBlock($name, $attrs),
             default     => throw new \RuntimeException("Unknown layout node tag: [{$tag}]")
         };
-
-        // Injecte le TemplateEngine
+    
         if ($block instanceof AbstractBlock) {
             $block->setTemplateEngine($this->templateEngine);
             $block->setLayout($node);
-        
-            // ✅ Ajouter ces 2 lignes
             if ($this->eventDispatcher !== null) {
                 $block->setEventDispatcher($this->eventDispatcher);
             }
         }
-
-        // Crée et attache les enfants récursivement
+    
         foreach ($node['children'] ?? [] as $childNode) {
             $childTag = $childNode['tag'] ?? '';
             if (in_array($childTag, ['block', 'container'])) {
@@ -74,10 +79,10 @@ class BlockFactory
                 $block->addChild($childBlock);
             }
         }
-
+    
         $this->instances[$name] = $block;
         $this->dispatch(new BlockEvent('block.create', $block));
-
+    
         return $block;
     }
 
@@ -98,7 +103,7 @@ class BlockFactory
             throw new \RuntimeException("No class defined for block [{$name}]. Attribute 'class' is required.");
         }
 
-        
+
         $template = $attrs['template'] ?? '';
 
         if (!class_exists($class)) {

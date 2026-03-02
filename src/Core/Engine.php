@@ -60,10 +60,8 @@ class Engine
 
     private function boot(): void
     {
-        // Paths de base
         $basePath = $this->config['base_path'] ?? dirname(__DIR__, 2);
-
-        // ✅ Correct : la config chargée a priorité sur les defaults
+    
         $this->config = array_merge([
             'base_path'     => $basePath,
             'themes_path'   => $basePath . '/themes',
@@ -73,26 +71,36 @@ class Engine
             'theme'         => 'base',
             'cache_enable'  => true,
             'debug'         => false,
-        ], $this->config); // $this->config en second = il écrase les defaults ✅
-
+        ], $this->config);
+    
+        // ✅ Résolution forcée des paths relatifs (fix Windows + Linux)
+        foreach (['themes_path', 'modules_path', 'cache_path', 'config_path'] as $key) {
+            $value = $this->config[$key];
+            if (!str_starts_with($value, '/') && !str_contains($value, ':')) {
+                $this->config[$key] = $this->config['base_path'] . DIRECTORY_SEPARATOR . ltrim($value, '/\\');
+            } else {
+                // ✅ Normalise les séparateurs même pour les paths déjà absolus
+                $this->config[$key] = str_replace('/', DIRECTORY_SEPARATOR, $value);
+            }
+        }
+    
         // Boot des composants core
         $this->layoutManager  = new LayoutManager($this->config, $this->registry);
         $this->templateEngine = new TemplateEngine($this->config);
         $this->router         = new Router($this->config);
-
+    
         $this->themeManager    = new ThemeManager($this->config);
         $this->cacheManager    = new CacheManager($this->config);
         $this->eventDispatcher = new EventDispatcher();
-
+    
         $this->tenantManager = new TenantManager($this->config);
         $this->moduleLoader  = new ModuleLoader($this->config);
         $this->moduleLoader->load();
-        
+    
         // Si tenant actif → override du thème
         if ($this->tenantManager->isActive()) {
             $this->config['theme'] = $this->tenantManager->resolveTheme($this->config['theme']);
         }
-        
     }
     
     // Getters publics

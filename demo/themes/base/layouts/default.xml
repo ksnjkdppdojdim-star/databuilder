@@ -5,7 +5,7 @@
         <container name="head" htmlTag="head">
             <block
                 name="html.head"
-                class="DataBuilder\Block\HtmlHeadBlock"
+                class="DataBuilderDemo\Block\HtmlHeadBlock"
                 template="html/head.phtml"
             />
         </container>
@@ -15,7 +15,7 @@
             <container name="header" htmlTag="header">
                 <block
                     name="site.header"
-                    class="DataBuilder\Block\HeaderBlock"
+                    class="DataBuilderDemo\Block\HeaderBlock"
                     template="blocks/header.phtml"
                 />
             </container>
@@ -23,7 +23,7 @@
             <container name="main" htmlTag="main">
                 <block
                     name="page.content"
-                    class="DataBuilder\Block\ContentBlock"
+                    class="DataBuilderDemo\Block\ContentBlock"
                     template="blocks/content.phtml"
                 />
             </container>
@@ -31,7 +31,7 @@
             <container name="footer" htmlTag="footer">
                 <block
                     name="site.footer"
-                    class="DataBuilder\Block\FooterBlock"
+                    class="DataBuilderDemo\Block\FooterBlock"
                     template="blocks/footer.phtml"
                 />
             </container>

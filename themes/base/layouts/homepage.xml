@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <container name="main" htmlTag="main">
+        <block
+            name="page.content"
+            class="DataBuilder\Block\ContentBlock"
+            template="blocks/content.phtml"
+            after="-"
+        />
+        <block
+            name="page.welcome"
+            class="DataBuilder\Block\ContentBlock"
+            template="blocks/welcome.phtml"
+            after="page.content"
+        />
+    </container>
+</layout>

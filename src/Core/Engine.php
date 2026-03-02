@@ -12,6 +12,9 @@ use DataBuilder\Theme\ThemeManager;
 use DataBuilder\Cache\CacheManager;
 use DataBuilder\Event\EventDispatcher;
 
+use DataBuilder\Tenant\TenantManager;
+use DataBuilder\Module\ModuleLoader;
+
 
 class Engine
 {
@@ -26,6 +29,9 @@ class Engine
     private ThemeManager    $themeManager;
     private CacheManager    $cacheManager;
     private EventDispatcher $eventDispatcher;
+
+    private TenantManager $tenantManager;
+    private ModuleLoader  $moduleLoader;
 
     private function __construct(array $config)
     {
@@ -77,6 +83,15 @@ class Engine
         $this->themeManager    = new ThemeManager($this->config);
         $this->cacheManager    = new CacheManager($this->config);
         $this->eventDispatcher = new EventDispatcher();
+
+        $this->tenantManager = new TenantManager($this->config);
+        $this->moduleLoader  = new ModuleLoader($this->config);
+        $this->moduleLoader->load();
+        
+        // Si tenant actif → override du thème
+        if ($this->tenantManager->isActive()) {
+            $this->config['theme'] = $this->tenantManager->resolveTheme($this->config['theme']);
+        }
         
     }
     
@@ -84,6 +99,9 @@ class Engine
     public function getThemeManager(): ThemeManager       { return $this->themeManager; }
     public function getCacheManager(): CacheManager       { return $this->cacheManager; }
     public function getEventDispatcher(): EventDispatcher { return $this->eventDispatcher; }
+
+    public function getTenantManager(): TenantManager { return $this->tenantManager; }
+    public function getModuleLoader(): ModuleLoader   { return $this->moduleLoader; }
     
 
     public function dispatch(): void

@@ -4,6 +4,9 @@ namespace DataBuilder\Block;
 
 use DataBuilder\Template\TemplateEngine;
 
+use DataBuilder\Event\EventDispatcher;
+use DataBuilder\Event\BlockEvent;
+
 /**
  * Instancie les blocks à partir d'un nœud de layout parsé.
  * Supporte l'instanciation lazy : le block n'est créé que si son rendu est requis.
@@ -12,6 +15,13 @@ class BlockFactory
 {
     private array $instances = []; // Cache des instances déjà créées
     private TemplateEngine $templateEngine;
+    private ?EventDispatcher $eventDispatcher = null;
+    
+    // Setter
+    public function setEventDispatcher(EventDispatcher $dispatcher): void
+    {
+        $this->eventDispatcher = $dispatcher;
+    }
 
     public function __construct(TemplateEngine $templateEngine)
     {
@@ -61,8 +71,15 @@ class BlockFactory
         }
 
         $this->instances[$name] = $block;
+        $this->dispatch(new BlockEvent('block.create', $block));
 
         return $block;
+    }
+
+    // Méthode privée à ajouter
+    private function dispatch(object $event): void
+    {
+        $this->eventDispatcher?->dispatch($event);
     }
 
     /**

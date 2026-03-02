@@ -4,6 +4,9 @@ namespace DataBuilder\Block;
 
 use DataBuilder\Template\TemplateEngine;
 
+use DataBuilder\Event\EventDispatcher;
+use DataBuilder\Event\BlockEvent;
+
 abstract class AbstractBlock implements BlockInterface
 {
     protected string $name     = '';
@@ -13,29 +16,49 @@ abstract class AbstractBlock implements BlockInterface
     protected array  $layoutNode = [];
     protected ?TemplateEngine $templateEngine = null;
 
+    protected ?EventDispatcher $eventDispatcher = null;
+    
+
+
     public function __construct(string $name, string $template = '')
     {
         $this->name     = $name;
         $this->template = $template;
     }
 
-    // ─── Render ──────────────────────────────────────────────────────────────
+    public function setEventDispatcher(EventDispatcher $dispatcher): void
+    {
+        $this->eventDispatcher = $dispatcher;
+        foreach ($this->children as $child) {
+            if ($child instanceof AbstractBlock) {
+                $child->setEventDispatcher($dispatcher);
+            }
+        }
+    }
 
+    // ─── Render ──────────────────────────────────────────────────────────────
+    
+    // render() mis à jour
     public function render(): string
     {
-        if ($this->templateEngine === null) {
-            throw new \RuntimeException(
-                "TemplateEngine not injected in block [{$this->name}]. " .
-                "Use setTemplateEngine() before render()."
-            );
-        }
-
+        // Event before
+        $before = new BlockEvent('block.render.before', $this);
+        $this->eventDispatcher?->dispatch($before);
+        if ($before->isPropagationStopped()) return '';
+    
+        // Rendu normal
         if (empty($this->template)) {
-            // Block sans template → rend uniquement ses enfants
-            return $this->renderChildren();
+            $html = $this->renderChildren();
+        } else {
+            $html = $this->templateEngine->render($this->template, $this);
         }
-
-        return $this->templateEngine->render($this->template, $this);
+    
+        // Event after — permet de modifier le HTML produit
+        $after = new BlockEvent('block.render.after', $this);
+        $after->setHtml($html);
+        $this->eventDispatcher?->dispatch($after);
+    
+        return $after->getHtml();
     }
 
     /**

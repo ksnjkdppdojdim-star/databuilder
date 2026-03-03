@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $this->escape($this->getVariable('TR_PAGE_TITLE', 'DataBuilder')); ?></title>
+    <link rel="stylesheet" href="/gui/themes/default/ui.css">
+    <style>
+        .databuilder-client {
+            padding: 20px;
+        }
+        .databuilder-welcome {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 30px;
+            text-align: center;
+        }
+        .databuilder-templates {
+            margin-top: 20px;
+        }
+        .template-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .template-card h4 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="databuilder-client">
+        <h1><?php echo $this->escape($this->getVariable('TR_PAGE_TITLE', 'DataBuilder')); ?></h1>
+        
+        <?php if ($this->getVariable('page_message')): ?>
+        <div class="page_message">
+            <?php echo $this->getVariable('page_message'); ?>
+        </div>
+        <?php endif; ?>
+        
+        <div class="databuilder-welcome">
+            <h2><?php echo $this->escape($this->getVariable('TR_WELCOME', 'Welcome to DataBuilder')); ?></h2>
+            <p><?php echo $this->escape($this->getVariable('TR_DESCRIPTION', 'Manage your custom templates here.')); ?></p>
+        </div>
+        
+        <div class="databuilder-templates">
+            <h3><?php echo $this->escape($this->getVariable('TR_MY_TEMPLATES', 'My Templates')); ?></h3>
+            
+            <?php 
+            $templates = $this->getVariable('templates', []);
+            if (empty($templates)): 
+            ?>
+                <p><?php echo $this->escape($this->getVariable('TR_NO_TEMPLATES', 'You have no custom templates yet.')); ?></p>
+            <?php else: ?>
+                <?php foreach ($templates as $template): ?>
+                <div class="template-card">
+                    <h4><?php echo $this->escape($template['name']); ?></h4>
+                    <p><?php echo $this->escape($template['description']); ?></p>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</body>
+</html>

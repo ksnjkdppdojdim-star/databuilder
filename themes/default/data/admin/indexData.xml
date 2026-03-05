@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder Admin Index Data Configuration
+    
+    Defines data variables, labels, colors, and other customizable properties
+    for the admin dashboard index page.
+    
+    This file can be completely overridden in:
+    - themes/custom/data/admin/indexData.xml (full override)
+    - themes/default/data/admin/indexData.xml (default values)
+    
+    Each property can be customized without modifying the source code.
+-->
+<data>
+    <page name="admin_index">
+        <label>Admin Dashboard</label>
+        <description>Main dashboard for administrators showing statistics and traffic</description>
+        
+        <!-- Page-level styling -->
+        <style>
+            <padding>24px</padding>
+            <gap>24px</gap>
+            <background>transparent</background>
+        </style>
+        
+        <!-- Statistics Configuration -->
+        <statistics>
+            <grid>
+                <columns>auto-fit</columns>
+                <min-width>200px</min-width>
+                <max-width>1fr</max-width>
+                <gap>16px</gap>
+            </grid>
+            
+            <!-- Admin Users Card -->
+            <stat name="admin_users">
+                <label>{{TR_ADMIN_USERS}}</label>
+                <variable>ADMIN_USERS</variable>
+                <icon>admin_panel_settings</icon>
+                <icon-background>#3b82f6</icon-background>
+                <icon-color>rgba(59, 130, 246, 0.1)</icon-color>
+                <link>/admin/manage_users.php?user_type=admin</link>
+                <sortable>true</sortable>
+                <sortorder>1</sortorder>
+            </stat>
+            
+            <!-- Reseller Users Card -->
+            <stat name="reseller_users">
+                <label>{{TR_RESELLER_USERS}}</label>
+                <variable>RESELLER_USERS</variable>
+                <icon>store</icon>
+                <icon-background>#10b981</icon-background>
+                <icon-color>rgba(16, 185, 129, 0.1)</icon-color>
+                <link>/admin/manage_users.php?user_type=reseller</link>
+                <sortable>true</sortable>
+                <sortorder>2</sortorder>
+            </stat>
+            
+            <!-- Normal Users Card -->
+            <stat name="normal_users">
+                <label>{{TR_NORMAL_USERS}}</label>
+                <variable>NORMAL_USERS</variable>
+                <icon>people</icon>
+                <icon-background>#f59e0b</icon-background>
+                <icon-color>rgba(245, 158, 11, 0.1)</icon-color>
+                <link>/admin/manage_users.php?user_type=user</link>
+                <sortable>true</sortable>
+                <sortorder>3</sortorder>
+            </stat>
+            
+            <!-- Domains Card -->
+            <stat name="domains">
+                <label>{{TR_DOMAINS}}</label>
+                <variable>DOMAINS</variable>
+                <icon>language</icon>
+                <icon-background>#8b5cf6</icon-background>
+                <icon-color>rgba(139, 92, 246, 0.1)</icon-color>
+                <link>/admin/manage_domains.php</link>
+                <sortable>true</sortable>
+                <sortorder>4</sortorder>
+            </stat>
+            
+            <!-- FTP Accounts Card -->
+            <stat name="ftp_accounts">
+                <label>{{TR_FTP_ACCOUNTS}}</label>
+                <variable>FTP_ACCOUNTS</variable>
+                <icon>folder_open</icon>
+                <icon-background>#06b6d4</icon-background>
+                <icon-color>rgba(6, 182, 212, 0.1)</icon-color>
+                <link>/admin/manage_ftp.php</link>
+                <sortable>true</sortable>
+                <sortorder>5</sortorder>
+            </stat>
+            
+            <!-- SQL Databases Card -->
+            <stat name="sql_databases">
+                <label>{{TR_SQL_DATABASES}}</label>
+                <variable>SQL_DATABASES</variable>
+                <icon>database</icon>
+                <icon-background>#6366f1</icon-background>
+                <icon-color>rgba(99, 102, 241, 0.1)</icon-color>
+                <link>/admin/manage_databases.php</link>
+                <sortable>true</sortable>
+                <sortorder>6</sortorder>
+            </stat>
+            
+            <!-- SQL Users Card -->
+            <stat name="sql_users">
+                <label>{{TR_SQL_USERS}}</label>
+                <variable>SQL_USERS</variable>
+                <icon>manage_accounts</icon>
+                <icon-background>#ec4899</icon-background>
+                <icon-color>rgba(236, 72, 153, 0.1)</icon-color>
+                <link>/admin/manage_sql_users.php</link>
+                <sortable>true</sortable>
+                <sortorder>7</sortorder>
+            </stat>
+            
+            <!-- Mail Accounts Card -->
+            <stat name="mail_accounts">
+                <label>{{TR_MAIL_ACCOUNTS}}</label>
+                <variable>MAIL_ACCOUNTS</variable>
+                <icon>mail</icon>
+                <icon-background>#ef4444</icon-background>
+                <icon-color>rgba(239, 68, 68, 0.1)</icon-color>
+                <link>/admin/manage_email.php</link>
+                <sortable>true</sortable>
+                <sortorder>8</sortorder>
+            </stat>
+            
+        </statistics>
+        
+        <!-- Traffic Section Configuration -->
+        <traffic>
+            <label>{{TR_SERVER_TRAFFIC}}</label>
+            <icon>cloud_download</icon>
+            <variable>TRAFFIC_PERCENT_WIDTH</variable>
+            <warning-variable>TRAFFIC_WARNING</warning-variable>
+            
+            <!-- Progress bar styling -->
+            <progress-bar>
+                <height>24px</height>
+                <background>#e2e8f0</background>
+                <gradient>linear-gradient(90deg, #3b82f6, #06b6d4)</gradient>
+                <border-radius>12px</border-radius>
+            </progress-bar>
+            
+            <!-- Warning threshold (when to show warning) -->
+            <warning-threshold>80</warning-threshold>
+            <warning-color>#f59e0b</warning-color>
+            <danger-threshold>95</danger-threshold>
+            <danger-color>#ef4444</danger-color>
+        </traffic>
+        
+        <!-- Color Scheme (easily customizable) -->
+        <colors>
+            <primary>#3b82f6</primary>
+            <secondary>#64748b</secondary>
+            <success>#10b981</success>
+            <warning>#f59e0b</warning>
+            <danger>#ef4444</danger>
+            <info>#06b6d4</info>
+            
+            <!-- Background colors -->
+            <bg-light>#f8fafc</bg-light>
+            <bg-dark>#1a222f</bg-dark>
+            
+            <!-- Border colors -->
+            <border-light>#e2e8f0</border-light>
+            <border-dark>#334155</border-dark>
+            
+            <!-- Dark mode variants -->
+            <dark-bg-light>#0f172a</dark-bg-light>
+            <dark-bg-dark>#1e293b</dark-bg-dark>
+            <dark-border-light>#334155</dark-border-light>
+            <dark-border-dark>#475569</dark-border-dark>
+        </colors>
+        
+        <!-- Spacing configuration (CSS variable values) -->
+        <spacing>
+            <xs>6px</xs>
+            <sm>12px</sm>
+            <md>16px</md>
+            <lg>24px</lg>
+            <xl>32px</xl>
+        </spacing>
+        
+        <!-- Animation/transition timing -->
+        <animations>
+            <transition-fast>150ms</transition-fast>
+            <transition-normal>300ms</transition-normal>
+            <transition-slow>500ms</transition-slow>
+        </animations>
+        
+        <!-- Border radius settings -->
+        <radius>
+            <sm>6px</sm>
+            <md>12px</md>
+            <lg>16px</lg>
+        </radius>
+        
+    </page>
+</data>

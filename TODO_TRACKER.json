@@ -1,0 +1,500 @@
+{
+  "project": "DataBuilder iMSCP Plugin",
+  "version": "1.0.0-beta",
+  "description": "Ultra-performant modular frontend rendering engine for iMSCP",
+  "created_date": "2026-03-05",
+  "target_completion": "2026-04-05",
+  "status": "IN_PROGRESS",
+  "overall_progress": 25,
+  "phases": [
+    {
+      "id": 0,
+      "name": "Diagnostic & Critical Fix",
+      "status": "NOT_STARTED",
+      "progress": 0,
+      "priority": "CRITICAL",
+      "duration_hours": 3,
+      "depends_on": [],
+      "tasks": [
+        {
+          "id": "0.1.1",
+          "title": "Check PHP error logs",
+          "status": "NOT_STARTED",
+          "priority": "CRITICAL"
+        },
+        {
+          "id": "0.1.2",
+          "title": "Debug databuilder.php file",
+          "status": "NOT_STARTED",
+          "priority": "CRITICAL"
+        },
+        {
+          "id": "0.1.3",
+          "title": "Add debug logging to PageRenderer",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "0.1.4",
+          "title": "Verify theme files exist",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "0.1.5",
+          "title": "Manual test with debug mode",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "0.1.6",
+          "title": "Validate XML syntax",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        }
+      ],
+      "blocking": true,
+      "outcomes": [
+        "/admin/databuilder loads without error",
+        "Page displays in HTML (styling not required)",
+        "Error message is user-friendly"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Architecture Core Structure",
+      "status": "IN_PROGRESS",
+      "progress": 40,
+      "priority": "HIGH",
+      "duration_hours": 5,
+      "depends_on": [0],
+      "tasks": [
+        {
+          "id": "1.1.1",
+          "title": "Document each folder with README",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        },
+        {
+          "id": "1.1.2",
+          "title": "Verify file integrity and imports",
+          "status": "IN_PROGRESS",
+          "priority": "HIGH"
+        },
+        {
+          "id": "1.1.3",
+          "title": "Create src/Debug/Debugger.php",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Template/Layout/Block System",
+      "status": "IN_PROGRESS",
+      "progress": 30,
+      "priority": "HIGH",
+      "duration_hours": 7,
+      "depends_on": [1],
+      "tasks": [
+        {
+          "id": "2.1.1",
+          "title": "Create admin.xml layout",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/layouts/admin.xml"
+        },
+        {
+          "id": "2.1.2",
+          "title": "Create admin_index.xml layout",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/layouts/admin_index.xml"
+        },
+        {
+          "id": "2.3.1",
+          "title": "Create layout.phtml template",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/templates/page/layout.phtml"
+        },
+        {
+          "id": "2.3.2",
+          "title": "Create header.phtml template",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "themes/default/templates/page/header.phtml"
+        },
+        {
+          "id": "2.3.3",
+          "title": "Create footer.phtml template",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "themes/default/templates/page/footer.phtml"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Data Separation System",
+      "status": "IN_PROGRESS",
+      "progress": 40,
+      "priority": "HIGH",
+      "duration_hours": 5,
+      "depends_on": [2],
+      "tasks": [
+        {
+          "id": "3.2.1",
+          "title": "Create DataLoader class",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "src/DataLoader.php"
+        },
+        {
+          "id": "3.3.1",
+          "title": "Create VariableResolver class",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "src/VariableResolver.php"
+        },
+        {
+          "id": "3.4.1",
+          "title": "Implement data binding to blocks",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Page Routing & Fallback",
+      "status": "IN_PROGRESS",
+      "progress": 20,
+      "priority": "HIGH",
+      "duration_hours": 5,
+      "depends_on": [2, 3],
+      "tasks": [
+        {
+          "id": "4.1.1",
+          "title": "Auto-detect page name from URL",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "4.1.2",
+          "title": "Search layout in theme hierarchy",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "4.2.1",
+          "title": "Create theme resolver",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "src/Theme/ThemeResolver.php"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Admin Index Page (POC)",
+      "status": "IN_PROGRESS",
+      "progress": 50,
+      "priority": "CRITICAL",
+      "duration_hours": 7,
+      "depends_on": [2, 3, 4],
+      "tasks": [
+        {
+          "id": "5.1.1",
+          "title": "Create admin_index.xml layout",
+          "status": "NOT_STARTED",
+          "priority": "CRITICAL",
+          "file": "themes/default/layouts/admin_index.xml"
+        },
+        {
+          "id": "5.2.1",
+          "title": "Create index.phtml template",
+          "status": "NOT_STARTED",
+          "priority": "CRITICAL",
+          "file": "themes/default/templates/admin/index.phtml"
+        },
+        {
+          "id": "5.3.1",
+          "title": "Create IndexBlock class",
+          "status": "NOT_STARTED",
+          "priority": "CRITICAL",
+          "file": "src/Block/Admin/IndexBlock.php"
+        },
+        {
+          "id": "5.4.1",
+          "title": "Create indexData.xml",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/data/admin/indexData.xml"
+        }
+      ],
+      "outcomes": [
+        "/admin/index displays page content",
+        "All sections render without error",
+        "Data variables are correctly injected"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Design & Styling",
+      "status": "IN_PROGRESS",
+      "progress": 10,
+      "priority": "HIGH",
+      "duration_hours": 9,
+      "depends_on": [5],
+      "tasks": [
+        {
+          "id": "6.1.2",
+          "title": "Create main theme.css",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/assets/css/theme.css"
+        },
+        {
+          "id": "6.2.1",
+          "title": "Define light/dark color variables",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "6.2.2",
+          "title": "Create dark-mode.css",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "themes/default/assets/css/dark-mode.css"
+        },
+        {
+          "id": "6.2.3",
+          "title": "Add JavaScript dark mode toggle",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "themes/default/assets/js/dark-mode.js"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Installation Hooks",
+      "status": "IN_PROGRESS",
+      "progress": 30,
+      "priority": "HIGH",
+      "duration_hours": 4,
+      "depends_on": [5],
+      "tasks": [
+        {
+          "id": "7.1.1",
+          "title": "Create onInstall() method",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "DataBuilderIMSCPBetaPlugin.php"
+        },
+        {
+          "id": "7.1.2",
+          "title": "Copy theme files to iMSCP",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "7.2.1",
+          "title": "Create onUninstall() method",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Developer Documentation",
+      "status": "NOT_STARTED",
+      "progress": 0,
+      "priority": "MEDIUM",
+      "duration_hours": 5,
+      "depends_on": [5],
+      "tasks": [
+        {
+          "id": "8.1.1",
+          "title": "Create DEVELOPER_GUIDE.md",
+          "status": "NOT_STARTED",
+          "priority": "HIGH",
+          "file": "docs/DEVELOPER_GUIDE.md"
+        },
+        {
+          "id": "8.2.1",
+          "title": "Create API_REFERENCE.md",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "docs/API_REFERENCE.md"
+        },
+        {
+          "id": "8.3.1",
+          "title": "Create ARCHITECTURE.md",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM",
+          "file": "docs/ARCHITECTURE.md"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Testing & QA",
+      "status": "NOT_STARTED",
+      "progress": 0,
+      "priority": "MEDIUM",
+      "duration_hours": 7,
+      "depends_on": [5, 6],
+      "tasks": [
+        {
+          "id": "9.1.1",
+          "title": "Create test directory structure",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        },
+        {
+          "id": "9.2.1",
+          "title": "Test full page rendering",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "9.2.3",
+          "title": "Test fallback mechanism",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "9.3.1",
+          "title": "Benchmark page rendering",
+          "status": "NOT_STARTED",
+          "priority": "LOW"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Optimization & Polish",
+      "status": "NOT_STARTED",
+      "progress": 0,
+      "priority": "LOW",
+      "duration_hours": 5,
+      "depends_on": [9],
+      "tasks": [
+        {
+          "id": "10.1.1",
+          "title": "Implement caching strategy",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        },
+        {
+          "id": "10.2.1",
+          "title": "Input validation",
+          "status": "NOT_STARTED",
+          "priority": "HIGH"
+        },
+        {
+          "id": "10.3.1",
+          "title": "Test on different PHP versions",
+          "status": "NOT_STARTED",
+          "priority": "MEDIUM"
+        }
+      ]
+    }
+  ],
+  "critical_path": [
+    "Phase 0 (Fix error) → Phase 2 (Layout) → Phase 3 (Data) → Phase 5 (Admin Index) → Phase 6 (Styling)"
+  ],
+  "files_to_create": {
+    "critical": [
+      "src/Debug/Debugger.php"
+    ],
+    "high_priority": [
+      "themes/default/layouts/admin.xml",
+      "themes/default/layouts/admin_index.xml",
+      "themes/default/templates/page/layout.phtml",
+      "themes/default/templates/page/header.phtml",
+      "themes/default/templates/page/footer.phtml",
+      "themes/default/templates/admin/index.phtml",
+      "src/Block/Admin/IndexBlock.php",
+      "themes/default/data/admin/indexData.xml",
+      "src/DataLoader.php",
+      "src/VariableResolver.php"
+    ],
+    "medium_priority": [
+      "themes/default/assets/css/theme.css",
+      "themes/default/assets/css/dark-mode.css",
+      "themes/default/assets/js/app.js",
+      "src/Block/Admin/UsersSection.php",
+      "src/Block/Admin/ResellersSection.php"
+    ],
+    "low_priority": [
+      "docs/DEVELOPER_GUIDE.md",
+      "docs/API_REFERENCE.md",
+      "tests/unit/CoreEngineTest.php"
+    ]
+  },
+  "files_to_modify": {
+    "critical": [
+      "frontend/admin/databuilder.php"
+    ],
+    "high_priority": [
+      "src/Controller/ImscpPageController.php",
+      "DataBuilderIMSCPBetaPlugin.php"
+    ],
+    "medium_priority": [
+      "config.php"
+    ]
+  },
+  "dependencies": {
+    "Phase 1": ["Phase 0"],
+    "Phase 2": ["Phase 1"],
+    "Phase 3": ["Phase 2"],
+    "Phase 4": ["Phase 2", "Phase 3"],
+    "Phase 5": ["Phase 2", "Phase 3", "Phase 4"],
+    "Phase 6": ["Phase 5"],
+    "Phase 7": ["Phase 5"],
+    "Phase 8": ["Phase 5"],
+    "Phase 9": ["Phase 5", "Phase 6"],
+    "Phase 10": ["Phase 9"]
+  },
+  "metrics": {
+    "total_estimated_hours": 68,
+    "estimated_completion_date": "2026-04-05",
+    "target_files_to_create": 35,
+    "target_files_to_modify": 6,
+    "performance_target_ms": 100,
+    "memory_target_mb": 5
+  },
+  "constraints": [
+    "NEVER modify /imscp folder",
+    "DataBuilder performs NO database queries",
+    "Plugin must be installable on any iMSCP server",
+    "Must maintain backward compatibility",
+    "Users can override without modifying source"
+  ],
+  "success_criteria": {
+    "mvp": [
+      "Phase 0: Error fixed, page loads",
+      "Phase 2: Layout/Block system works",
+      "Phase 4: Fallback works (DataBuilder OR iMSCP)",
+      "Phase 5: Admin index page fully functional",
+      "Phase 7: Install/Uninstall hooks work"
+    ],
+    "good": [
+      "Phase 1: Architecture documented",
+      "Phase 3: Data system fully implemented",
+      "Phase 6: Styling complete with dark mode",
+      "Phase 8: Developer guide complete"
+    ],
+    "excellent": [
+      "Phase 10: Performance optimized",
+      "Phase 10: Security hardened",
+      "More pages implemented",
+      "Extended documentation"
+    ]
+  }
+}

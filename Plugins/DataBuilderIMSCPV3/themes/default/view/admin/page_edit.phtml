@@ -1,0 +1,233 @@
+<?php
+/** @noinspection PhpUnhandledExceptionInspection */
+?>
+
+<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+    <div class="flex items-start">
+        <span class="material-symbols-outlined text-blue-500 dark:text-blue-400 mr-3 mt-0.5">edit</span>
+        <div class="text-sm text-blue-700 dark:text-blue-300">
+            <p class="mb-2">
+                <?= tohtml(tr('Create or edit a page using the visual page builder. Fill in the details below and click Save.'));?>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+            <a href="/admin/databuilder" class="inline-flex items-center text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white">
+                <span class="material-symbols-outlined text-sm mr-2">home</span>
+                <?= tohtml(tr('DataBuilder')) ?>
+            </a>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                <a href="/admin/databuilder/pages" class="ml-1 text-sm font-medium text-slate-700 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white">
+                    <?= tohtml(tr('Pages')) ?>
+                </a>
+            </div>
+        </li>
+        <li>
+            <div class="flex items-center">
+                <span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                <span class="ml-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <?= tohtml($PAGE_ID ? tr('Edit Page') : tr('New Page')) ?>
+                </span>
+            </div>
+        </li>
+    </ol>
+</nav>
+
+<!-- Form -->
+<form action="{FORM_ACTION}" method="post" id="page_form" class="space-y-6">
+    <input type="hidden" name="page_id" value="{PAGE_ID}">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Basic Info -->
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+                <h3 class="text-lg font-bold mb-4"><?= tohtml(tr('Page Information')) ?></h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_TITLE} <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="title" name="title" value="{TITLE_VALUE}" required
+                               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="url_key" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_URL_KEY} <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="url_key" name="url_key" value="{URL_KEY_VALUE}" required
+                               placeholder="e.g., about-us, contact-us"
+                               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                        <p class="mt-1 text-xs text-slate-500">{TR_URL_KEY_HELP}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Editor -->
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+                <h3 class="text-lg font-bold mb-4">{TR_CONTENT}</h3>
+                
+                <div>
+                    <textarea id="content" name="content" rows="15"
+                              class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white font-mono text-sm"
+                              placeholder="<h1>Your Content Here</h1>&#10;<p>Add your HTML content...</p>">{CONTENT_VALUE}</textarea>
+                    <p class="mt-1 text-xs text-slate-500">{TR_CONTENT_HELP}</p>
+                </div>
+                
+                <!-- Simple Toolbar -->
+                <div class="mt-2 flex flex-wrap gap-2">
+                    <button type="button" onclick="insertTag('h1')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">H1</button>
+                    <button type="button" onclick="insertTag('h2')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">H2</button>
+                    <button type="button" onclick="insertTag('h3')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">H3</button>
+                    <button type="button" onclick="insertTag('p')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">P</button>
+                    <button type="button" onclick="insertTag('strong')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600"><b>B</b></button>
+                    <button type="button" onclick="insertTag('em')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600"><i>I</i></button>
+                    <button type="button" onclick="insertTag('a')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">🔗</button>
+                    <button type="button" onclick="insertTag('ul')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">UL</button>
+                    <button type="button" onclick="insertTag('ol')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">OL</button>
+                    <button type="button" onclick="insertTag('img')" class="px-3 py-1 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600">🖼️</button>
+                </div>
+            </div>
+            
+            <!-- SEO -->
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+                <h3 class="text-lg font-bold mb-4"><?= tohtml(tr('SEO Settings')) ?></h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="meta_title" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_META_TITLE}
+                        </label>
+                        <input type="text" id="meta_title" name="meta_title" value="{META_TITLE_VALUE}"
+                               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="meta_description" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_META_DESCRIPTION}
+                        </label>
+                        <textarea id="meta_description" name="meta_description" rows="2"
+                                  class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">{META_DESCRIPTION_VALUE}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="meta_keywords" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_META_KEYWORDS}
+                        </label>
+                        <input type="text" id="meta_keywords" name="meta_keywords" value="{META_KEYWORDS_VALUE}"
+                               placeholder="keyword1, keyword2, keyword3"
+                               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Publish -->
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+                <h3 class="text-lg font-bold mb-4"><?= tohtml(tr('Publish')) ?></h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" id="is_active" class="sr-only peer" {IS_ACTIVE_CHECKED}>
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{TR_STATUS}</span>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label for="sort_order" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {TR_SORT_ORDER}
+                        </label>
+                        <input type="number" id="sort_order" name="sort_order" value="{SORT_ORDER_VALUE}"
+                               class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                    </div>
+                    
+                    <div class="pt-4 flex flex-col gap-2">
+                        <button type="submit" name="save" 
+                                class="w-full bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition-all">
+                            {TR_SAVE}
+                        </button>
+                        <a href="/admin/databuilder/pages" 
+                           class="w-full text-center bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg font-semibold transition-all">
+                            {TR_CANCEL}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Layout -->
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-neutral-border dark:border-slate-800 shadow-sm p-6">
+                <h3 class="text-lg font-bold mb-4">{TR_LAYOUT}</h3>
+                
+                <select name="layout" id="layout" 
+                        class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-white">
+                    {LAYOUT_OPTIONS}
+                </select>
+                
+                <!-- Layout Preview -->
+                <div class="mt-4 space-y-2">
+                    <div class="border rounded p-2 text-center text-xs text-slate-500">
+                        <div class="bg-slate-100 dark:bg-slate-700 h-8 mb-1 rounded"></div>
+                        <span>1 Column</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 border rounded p-2 text-center text-xs text-slate-500">
+                        <div class="bg-slate-100 dark:bg-slate-700 h-8 rounded col-span-1"></div>
+                        <div class="bg-slate-100 dark:bg-slate-700 h-8 rounded col-span-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+function insertTag(tag) {
+    const textarea = document.getElementById('content');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.substring(start, end);
+    
+    let newText;
+    if (tag === 'img') {
+        newText = text.substring(0, start) + '<img src="" alt="">' + text.substring(end);
+    } else if (tag === 'a') {
+        newText = text.substring(0, start) + '<a href="">' + (selected || 'link text') + '</a>' + text.substring(end);
+    } else {
+        newText = text.substring(0, start) + '<' + tag + '>' + (selected || 'content') + '</' + tag + '>' + text.substring(end);
+    }
+    
+    textarea.value = newText;
+    textarea.focus();
+}
+
+// Auto-generate URL key from title
+document.getElementById('title').addEventListener('input', function() {
+    const urlKeyInput = document.getElementById('url_key');
+    if (!urlKeyInput.dataset.modified) {
+        const slug = this.value.toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+        urlKeyInput.value = slug;
+    }
+});
+
+document.getElementById('url_key').addEventListener('input', function() {
+    this.dataset.modified = 'true';
+});
+</script>

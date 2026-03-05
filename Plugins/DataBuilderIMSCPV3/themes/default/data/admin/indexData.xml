@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder Admin Index Page Data
+    This file contains all the variables for the admin index page
+    Variables are injected into index.phtml template
+-->
+<page>
+    <meta>
+        <title>Admin Dashboard</title>
+        <description>Admin index page dashboard</description>
+    </meta>
+    
+    <!-- Statistics Variables -->
+    <variables>
+        <!-- User counts -->
+        <variable name="ADMIN_USERS" type="integer">0</variable>
+        <variable name="TR_ADMIN_USERS">Admin Users</variable>
+        
+        <variable name="RESELLER_USERS" type="integer">0</variable>
+        <variable name="TR_RESELLER_USERS">Reseller Users</variable>
+        
+        <variable name="NORMAL_USERS" type="integer">0</variable>
+        <variable name="TR_NORMAL_USERS">Normal Users</variable>
+        
+        <!-- Domain counts -->
+        <variable name="DOMAINS" type="integer">0</variable>
+        <variable name="TR_DOMAINS">Domains</variable>
+        
+        <!-- FTP Accounts -->
+        <variable name="FTP_ACCOUNTS" type="integer">0</variable>
+        <variable name="TR_FTP_ACCOUNTS">FTP Accounts</variable>
+        
+        <!-- SQL -->
+        <variable name="SQL_DATABASES" type="integer">0</variable>
+        <variable name="TR_SQL_DATABASES">SQL Databases</variable>
+        
+        <variable name="SQL_USERS" type="integer">0</variable>
+        <variable name="TR_SQL_USERS">SQL Users</variable>
+        
+        <!-- Mail -->
+        <variable name="MAIL_ACCOUNTS" type="integer">0</variable>
+        <variable name="TR_MAIL_ACCOUNTS">Mail Accounts</variable>
+        
+        <!-- Traffic -->
+        <variable name="TR_SERVER_TRAFFIC">Server Traffic</variable>
+        <variable name="TRAFFIC_WARNING"></variable>
+        <variable name="TRAFFIC_PERCENT_WIDTH" type="integer">0</variable>
+        <variable name="TRAFFIC_PERCENT" type="integer">0</variable>
+    </variables>
+    
+    <!-- Block Configuration -->
+    <blocks>
+        <!-- Each block can have custom parameters -->
+        <block name="admin_users" enabled="true">
+            <params>
+                <param name="icon">admin_panel_settings</param>
+                <param name="color">blue</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="reseller_users" enabled="true">
+            <params>
+                <param name="icon">store</param>
+                <param name="color">emerald</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="normal_users" enabled="true">
+            <params>
+                <param name="icon">people</param>
+                <param name="color">amber</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="domains" enabled="true">
+            <params>
+                <param name="icon">language</param>
+                <param name="color">purple</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="ftp_accounts" enabled="true">
+            <params>
+                <param name="icon">folder_open</param>
+                <param name="color">cyan</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="sql_databases" enabled="true">
+            <params>
+                <param name="icon">database</param>
+                <param name="color">indigo</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="sql_users" enabled="true">
+            <params>
+                <param name="icon">manage_accounts</param>
+                <param name="color">orange</param>
+                <param name="columns">2</param>
+            </params>
+        </block>
+        
+        <block name="mail_accounts" enabled="true">
+            <params>
+                <param name="icon">mail</param>
+                <param name="color">red</param>
+                <param name="columns">4</param>
+            </params>
+        </block>
+        
+        <block name="server_traffic" enabled="true">
+            <params>
+                <param name="icon">cloud_download</param>
+                <param name="show_warning">true</param>
+                <param name="bar_color">blue-cyan-gradient</param>
+            </params>
+        </block>
+    </blocks>
+    
+    <!-- Layout Configuration -->
+    <layout>
+        <grid>
+            <columns>6</columns>
+        </grid>
+    </layout>
+</page>
+

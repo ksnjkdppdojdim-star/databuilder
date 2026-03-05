@@ -1,0 +1,61 @@
+<?php
+/**
+ * DataBuilder Admin Index Template (Simplified Version)
+ *
+ * This template renders only HTML - all CSS/JS are loaded externally.
+ * Can be completely overridden in themes/custom/templates/admin/index.phtml
+ *
+ * @var \DataBuilder\Block\Admin\IndexBlock $block
+ */
+?>
+
+<div class="databuilder-admin-index" data-theme="databuilder" data-page="admin_index">
+    
+    <!-- Administrative Dashboard Statistics Section -->
+    <section class="db-section db-statistics" id="admin-statistics">
+        <div class="statistics-grid">
+            
+            <?php foreach ($this->block->getStatistics() as $stat): ?>
+                <div class="stat-card stat-card--<?php echo $this->escapeHtml($stat['variable']); ?>" 
+                     data-stat="<?php echo $this->escapeHtml($stat['variable']); ?>">
+                    <div class="stat-card__icon"></div>
+                    <div class="stat-card__content">
+                        <div class="stat-card__value">
+                            <?php echo $this->escapeHtml($stat['value']); ?>
+                        </div>
+                        <div class="stat-card__label">
+                            {<?php echo $stat['label_key']; ?>}
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            
+        </div>
+    </section>
+
+    <!-- Server Traffic Section -->
+    <section class="db-section db-traffic" id="admin-traffic">
+        <div class="traffic-container">
+            <div class="traffic-header">
+                <h3 class="traffic-title">
+                    <span class="material-symbols-outlined">cloud_download</span>
+                    {<?php echo $this->block->getTraffic()['label']; ?>}
+                </h3>
+                <div class="traffic-warning">
+                    <?php echo $this->escapeHtml($this->block->getTraffic()['warning']); ?>
+                </div>
+            </div>
+            <div class="traffic-bar-container">
+                <div class="traffic-bar">
+                    <div class="traffic-progress" style="width: <?php echo $this->escapeHtml($this->block->getTraffic()['percent_width']); ?>"></div>
+                </div>
+            </div>
+            <div class="traffic-percentage">
+                <?php echo $this->escapeHtml($this->block->getTraffic()['percent']); ?>%
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- DataBuilder CSS/JS loaded separately via AssetManager -->

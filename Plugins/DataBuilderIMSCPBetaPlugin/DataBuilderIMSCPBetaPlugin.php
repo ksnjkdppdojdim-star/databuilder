@@ -25,12 +25,79 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     const PLUGIN_NAME = 'DataBuilderIMSCPBetaPlugin';
     
     /**
+     * Static initialization flag
+     */
+    private static $autoloaderInitialized = false;
+    
+    /**
+     * Constructor - Initialize autoloader early
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        // Ensure autoloader is always ready
+        self::ensureAutoloaderInitialized();
+    }
+    
+    /**
+     * Ensure autoloader is initialized before any DataBuilder class is used
+     */
+    private static function ensureAutoloaderInitialized(): void
+    {
+        if (self::$autoloaderInitialized) {
+            return;
+        }
+        
+        self::$autoloaderInitialized = true;
+        
+        // Register DataBuilder namespace for PSR-4 autoloading
+        $baseDir = __DIR__ . '/src';
+        
+        // Create a simple PSR-4 autoloader for DataBuilder namespace
+        spl_autoload_register(function ($class) use ($baseDir) {
+            // Only handle DataBuilder namespace
+            if (strpos($class, 'DataBuilder\\') !== 0) {
+                return false;
+            }
+            
+            // Convert namespace to file path
+            // DataBuilder\Cleanup\CleanupManager → src/Cleanup/CleanupManager.php
+            $prefix = 'DataBuilder\\';
+            $len = strlen($prefix);
+            
+            if (strncmp($prefix, $class, $len) !== 0) {
+                return false;
+            }
+            
+            // Get the relative class name
+            $relativeClass = substr($class, $len);
+            
+            // Convert namespace to path
+            $file = $baseDir . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relativeClass) . '.php';
+            
+            // Include the file if it exists
+            if (file_exists($file)) {
+                require_once $file;
+                return true;
+            }
+            
+            return false;
+        });
+        
+        // Also try to load Composer autoload if available
+        $vendorAutoload = __DIR__ . '/vendor/autoload.php';
+        if (file_exists($vendorAutoload)) {
+            require_once $vendorAutoload;
+        }
+    }
+    
+    /**
      * @inheritDoc
      */
     public function init()
     {
-        // Initialize autoloader for DataBuilder classes
-        $this->initAutoloader();
+        // Autoloader already initialized in constructor
+        // This is here mainly for translation loading
         
         // Load translations if available
         $l10nDir = __DIR__ . '/l10n';
@@ -40,34 +107,12 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     }
 
     /**
-     * Initialize DataBuilder autoloader
+     * Initialize DataBuilder autoloader (LEGACY - now done in constructor)
+     * @deprecated Use constructor instead
      */
     private function initAutoloader(): void
     {
-        // Register DataBuilder namespace
-        $vendorAutoload = __DIR__ . '/vendor/autoload.php';
-        
-        if (file_exists($vendorAutoload)) {
-            require_once $vendorAutoload;
-        }
-        
-        // Register plugin src as PSR-4
-        spl_autoload_register(function ($class) {
-            $prefix = 'DataBuilder\\';
-            $baseDir = __DIR__ . '/src/';
-            
-            $len = strlen($prefix);
-            if (strncmp($prefix, $class, $len) !== 0) {
-                return;
-            }
-            
-            $relativeClass = substr($class, $len);
-            $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
-            
-            if (file_exists($file)) {
-                require $file;
-            }
-        });
+        self::ensureAutoloaderInitialized();
     }
 
     /**
@@ -87,17 +132,21 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             }
         );
 
-        // TEMPORARILY DISABLED: Template override hook requires getRootDir() method
-        // which doesn't exist in iMSCP\TemplateEngine
-        // TODO: Re-enable once we find an alternative approach
-        /*
+        // Hook into template rendering to inject DataBuilder content
         $events->registerListener(
-            iMSCP_Events::onBeforeLoadTemplateFile,
+            iMSCP_Events::onAfterBuildTemplate,
             function (iMSCP_Events_Event $event) {
-                $this->handleTemplateOverride($event);
+                $this->injectDataBuilderContent($event);
             }
         );
-        */
+        
+        // Hook to inject DataBuilder CSS/JS into template head
+        $events->registerListener(
+            iMSCP_Events::onAfterLoadTemplateFile,
+            function (iMSCP_Events_Event $event) {
+                $this->injectDataBuilderAssets($event);
+            }
+        );
         
         // Register navigation for admin
         $events->registerListener(
@@ -114,6 +163,136 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
                 $this->setupClientNavigation($event);
             }
         );
+    }
+    
+    /**
+     * Inject DataBuilder content into {LAYOUT_CONTENT}
+     * 
+     * This hook replaces the standard iMSCP admin/user content with DataBuilder content
+     * while keeping iMSCP's wrapper, variables, and assets intact
+     * 
+     * @param iMSCP_Events_Event $event
+     */
+    private function injectDataBuilderContent(iMSCP_Events_Event $event): void
+    {
+        // Get the template object
+        $templateEngine = $event->getTarget();
+        
+        // Only process on admin pages (not login, etc.)
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        if (strpos($scriptName, '/admin/') === false && strpos($scriptName, '/client/') === false) {
+            return;
+        }
+        
+        // Skip certain pages (login, install, etc.)
+        if (strpos($scriptName, 'login') !== false || strpos($scriptName, 'install') !== false) {
+            return;
+        }
+        
+        try {
+            // Initialize DataBuilder Engine
+            $engine = \DataBuilder\Core\Engine::create([
+                'base_path' => __DIR__,
+                'theme' => 'default',
+                'debug' => false,
+            ]);
+            
+            // Determine area and page
+            $area = strpos($scriptName, '/admin/') !== false ? 'admin' : 'client';
+            $page = basename($scriptName, '.php') ?: 'index';
+            
+            // Render only the content (not full page)
+            $content = $engine->renderPageContent($area, $page);
+            
+            // If content was generated, inject into {LAYOUT_CONTENT}
+            if ($content && is_object($templateEngine)) {
+                // Get the current template assignments
+                $assign = $templateEngine->getAllAssignements();
+                
+                // Replace LAYOUT_CONTENT with DataBuilder content
+                $templateEngine->assign('LAYOUT_CONTENT', $content);
+            }
+            
+        } catch (\Exception $e) {
+            // Fail silently - let iMSCP render normally
+            error_log("DataBuilder injection error: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Inject DataBuilder CSS/JS into template head
+     * 
+     * This adds DataBuilder stylesheets and scripts to the document head
+     * so they work with iMSCP's wrapper design
+     * 
+     * @param iMSCP_Events_Event $event
+     */
+    private function injectDataBuilderAssets(iMSCP_Events_Event $event): void
+    {
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        
+        // Only on admin pages
+        if (strpos($scriptName, '/admin/') === false) {
+            return;
+        }
+        
+        try {
+            $templateEngine = $event->getTarget();
+            
+            // Build asset URLs via asset-serve.php endpoint
+            // This prevents direct file access and provides security + caching
+            $pluginPath = '/plugins/DataBuilderIMSCPBetaPlugin';
+            $cssPath = $pluginPath . '/asset-serve.php?file=css/databuilder.css';
+            $jsPath = $pluginPath . '/asset-serve.php?file=js/databuilder.js';
+            
+            // Build the injection script
+            // This loads CSS/JS dynamically into the document head
+            $injectScript = <<<'JS'
+<script>
+(function() {
+    // Only run once
+    if (window.DataBuilderAssetsLoaded) return;
+    window.DataBuilderAssetsLoaded = true;
+    
+    // Inject CSS
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '/plugins/DataBuilderIMSCPBetaPlugin/asset-serve.php?file=css/databuilder.css';
+    css.dataset.component = 'databuilder';
+    document.head.appendChild(css);
+    
+    // Inject JS (defer to let DOM load first)
+    var script = document.createElement('script');
+    script.src = '/plugins/DataBuilderIMSCPBetaPlugin/asset-serve.php?file=js/databuilder.js';
+    script.dataset.component = 'databuilder';
+    script.defer = true;
+    document.head.appendChild(script);
+    
+    console.log('[DataBuilder] Assets loaded');
+})();
+</script>
+JS;
+            
+            // Try to inject into footer scripts
+            if (is_object($templateEngine)) {
+                try {
+                    // Try getting footer_script assignment
+                    $current = $templateEngine->getAssignment('footer_script');
+                    if ($current === null) {
+                        $current = '';
+                    }
+                    
+                    $templateEngine->assign('footer_script', $current . PHP_EOL . $injectScript);
+                } catch (\Exception $e) {
+                    // If assignment fails, try appending directly
+                    error_log("DataBuilder: Could not inject via footer_script: " . $e->getMessage());
+                }
+            }
+            
+        } catch (\Exception $e) {
+            // Fail silently
+            error_log("DataBuilder asset injection error: " . $e->getMessage());
+        }
     }
 
     /**
@@ -239,11 +418,14 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     public function install(iMSCP_Plugin_Manager $pluginManager)
     {
         try {
-            // Create necessary directories
+            // Create necessary directories in plugin
             $this->createDirectories();
             
             // Install vendor dependencies if needed
             $this->installDependencies();
+            
+            // Install DataBuilder theme in iMSCP themes directory
+            $this->installTheme($pluginManager);
             
             write_log('DataBuilderIMSCPPlugin installed successfully', E_USER_NOTICE);
         } catch (Exception $e) {
@@ -264,6 +446,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             // Update dependencies if needed
             $this->installDependencies();
             
+            // Update theme files (preserves customizations)
+            $this->installTheme($pluginManager);
+            
             write_log('DataBuilderIMSCPPlugin updated to version ' . $toVersion, E_USER_NOTICE);
         } catch (Exception $e) {
             throw new iMSCP_Plugin_Exception(
@@ -278,9 +463,32 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     public function uninstall(iMSCP_Plugin_Manager $pluginManager)
     {
         try {
-            // Clean up if needed (but keep user data)
-            write_log('DataBuilderIMSCPPlugin uninstalled', E_USER_NOTICE);
+            // Find iMSCP root for cleanup
+            $imscpRoot = $this->findImscpRoot();
+            $pluginDir = __DIR__;
+            
+            // Use CleanupManager for complete uninstallation
+            $cleanup = new \DataBuilder\Cleanup\CleanupManager($pluginDir, $imscpRoot);
+            $cleanupReport = $cleanup->cleanup();
+            
+            // Log cleanup results
+            foreach ($cleanupReport['removed_directories'] as $dir) {
+                write_log("Removed DataBuilder directory: {$dir}", E_USER_NOTICE);
+            }
+            foreach ($cleanupReport['removed_files'] as $file) {
+                write_log("Removed DataBuilder file: {$file}", E_USER_NOTICE);
+            }
+            foreach ($cleanupReport['cleared_caches'] as $cache) {
+                write_log("Cleared DataBuilder cache: {$cache}", E_USER_NOTICE);
+            }
+            foreach ($cleanupReport['errors'] as $error) {
+                write_log("DataBuilder cleanup error: {$error}", E_USER_WARNING);
+            }
+            
+            write_log('DataBuilderIMSCPPlugin uninstalled successfully', E_USER_NOTICE);
+            
         } catch (Exception $e) {
+            write_log('DataBuilderIMSCPPlugin uninstall error: ' . $e->getMessage(), E_USER_ERROR);
             throw new iMSCP_Plugin_Exception(
                 $e->getMessage(), $e->getCode(), $e
             );
@@ -292,13 +500,11 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
      */
     public function getRoutes()
     {
+        // Use simple file path format - the frontend files will handle everything
         $routes = [
-            // Admin routes for DataBuilder management
             '/admin/databuilder' => __DIR__ . '/frontend/admin/databuilder.php',
-            // Client routes for DataBuilder pages
             '/client/databuilder' => __DIR__ . '/frontend/client/databuilder.php',
-            // Public routes for DataBuilder pages (optional)
-            '/databuilder' => __DIR__ . '/frontend/shared/databuilder_render.php',
+            '/databuilder' => __DIR__ . '/frontend/shared/databuilder.php',
         ];
 
         return $routes;
@@ -509,5 +715,215 @@ function databuilder_get_template_content($template, $data = []) {
 ';
         
         file_put_contents($vendorDir . '/autoload.php', $autoloadContent);
+    }
+    
+    /**
+     * Install DataBuilder theme in iMSCP themes directory
+     * 
+     * This creates a symlink or copies the theme files to gui/themes/databuilder/
+     * 
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    private function installTheme(iMSCP_Plugin_Manager $pluginManager): void
+    {
+        // Get iMSCP root directory
+        $imscpRoot = $this->findImscpRoot();
+        $themesDir = $imscpRoot . '/gui/themes';
+        $databuilderThemeDir = $themesDir . '/databuilder';
+        
+        // Create themes directory if not exists
+        if (!is_dir($themesDir)) {
+            mkdir($themesDir, 0755, true);
+        }
+        
+        // Check if databuilder theme already exists
+        if (is_dir($databuilderThemeDir)) {
+            // Backup custom theme if exists before overwriting
+            $customBackupDir = $databuilderThemeDir . '_backup_' . time();
+            if (is_dir($databuilderThemeDir . '/custom')) {
+                $this->copyDirectory(
+                    $databuilderThemeDir . '/custom',
+                    $customBackupDir . '/custom'
+                );
+            }
+        }
+        
+        // Create theme directory
+        if (!is_dir($databuilderThemeDir)) {
+            mkdir($databuilderThemeDir, 0755, true);
+        }
+        
+        // Copy theme files from plugin
+        $pluginThemesDir = __DIR__ . '/themes';
+        
+        // Files to copy (root level tpl files)
+        $filesToCopy = [
+            'info.php',
+            'index.tpl',
+            'login.tpl',
+            'lostpassword.tpl',
+            'message.tpl',
+        ];
+        
+        foreach ($filesToCopy as $file) {
+            $source = $pluginThemesDir . '/' . $file;
+            if (file_exists($source)) {
+                copy($source, $databuilderThemeDir . '/' . $file);
+            }
+        }
+        
+        // Create symlink or copy admin directory
+        $pluginAdminDir = $pluginThemesDir . '/templates/admin';
+        $themeAdminDir = $databuilderThemeDir . '/admin';
+        
+        if (is_dir($pluginAdminDir)) {
+            if (!is_dir($themeAdminDir)) {
+                mkdir($themeAdminDir, 0755, true);
+            }
+            $this->copyDirectory($pluginAdminDir, $themeAdminDir);
+        }
+        
+        // Create shared layouts symlink/copy
+        $pluginSharedDir = $pluginThemesDir . '/shared';
+        $themeSharedDir = $databuilderThemeDir . '/shared';
+        
+        if (is_dir($pluginSharedDir)) {
+            if (!is_dir($themeSharedDir)) {
+                mkdir($themeSharedDir, 0755, true);
+            }
+            $this->copyDirectory($pluginSharedDir, $themeSharedDir);
+        }
+        
+        // Create assets directory if needed
+        $assetsDir = $databuilderThemeDir . '/assets';
+        if (!is_dir($assetsDir)) {
+            mkdir($assetsDir, 0755, true);
+            
+            // Copy or create placeholder for assets
+            $pluginAssetsDir = __DIR__ . '/assets';
+            if (is_dir($pluginAssetsDir)) {
+                $this->copyDirectory($pluginAssetsDir, $assetsDir);
+            } else {
+                // Create placeholder .gitkeep
+                file_put_contents($assetsDir . '/.gitkeep', '');
+            }
+        }
+        
+        write_log('DataBuilder theme installed in: ' . $databuilderThemeDir, E_USER_NOTICE);
+    }
+    
+    /**
+     * Find iMSCP root directory
+     * 
+     * @return string
+     */
+    private function findImscpRoot(): string
+    {
+        // Try multiple possible paths
+        $possiblePaths = [
+            dirname(__DIR__, 3),                    // From plugin: gui/plugins -> gui -> .
+            $_SERVER['DOCUMENT_ROOT'] ?? '',        // Document root
+            '/var/www/imscp',                      // Common default
+            '/var/www/html/imscp',
+        ];
+        
+        foreach ($possiblePaths as $path) {
+            if (empty($path)) continue;
+            $testFile = $path . '/gui/include/imscp-lib.php';
+            if (file_exists($testFile)) {
+                return $path;
+            }
+        }
+        
+        // Fallback
+        return '/var/www/imscp';
+    }
+    
+    /**
+     * Copy directory recursively
+     * 
+     * @param string $source
+     * @param string $destination
+     * @return void
+     */
+    private function copyDirectory(string $source, string $destination): void
+    {
+        if (!is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+        
+        $dir = opendir($source);
+        while (($file = readdir($dir)) !== false) {
+            if ($file === '.' || $file === '..') continue;
+            
+            $srcFile = $source . '/' . $file;
+            $destFile = $destination . '/' . $file;
+            
+            if (is_dir($srcFile)) {
+                $this->copyDirectory($srcFile, $destFile);
+            } else {
+                copy($srcFile, $destFile);
+            }
+        }
+        closedir($dir);
+    }
+    
+    /**
+     * Uninstall DataBuilder theme from iMSCP themes directory
+     * 
+     * This removes the theme directory from gui/themes/databuilder/
+     * 
+     * @param iMSCP_Plugin_Manager $pluginManager
+     * @return void
+     */
+    private function uninstallTheme(iMSCP_Plugin_Manager $pluginManager): void
+    {
+        // Get iMSCP root directory
+        $imscpRoot = $this->findImscpRoot();
+        $themesDir = $imscpRoot . '/gui/themes';
+        $databuilderThemeDir = $themesDir . '/databuilder';
+        
+        // Remove databuilder theme directory
+        if (is_dir($databuilderThemeDir)) {
+            // First, backup custom theme if exists (in case of re-installation)
+            $customDir = $databuilderThemeDir . '/custom';
+            if (is_dir($customDir)) {
+                $backupDir = $themesDir . '/databuilder_custom_backup_' . time();
+                $this->copyDirectory($customDir, $backupDir);
+            }
+            
+            // Remove the theme directory
+            $this->removeDirectory($databuilderThemeDir);
+            
+            write_log('DataBuilder theme uninstalled from: ' . $databuilderThemeDir, E_USER_NOTICE);
+        }
+    }
+    
+    /**
+     * Remove directory recursively
+     * 
+     * @param string $dir
+     * @return void
+     */
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        
+        $items = scandir($dir);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') continue;
+            
+            $path = $dir . '/' . $item;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+        
+        rmdir($dir);
     }
 }

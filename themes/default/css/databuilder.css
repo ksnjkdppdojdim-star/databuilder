@@ -1,0 +1,514 @@
+/**
+ * DataBuilder Admin Index - CSS Stylesheet
+ * 
+ * This file can be completely overridden in:
+ * - themes/custom/css/databuilder.css
+ * - themes/custom/css/admin/index.css
+ * 
+ * For complete customization without modifying source files.
+ */
+
+:root {
+    /* Primary Colors */
+    --db-primary: #3b82f6;
+    --db-primary-light: #60a5fa;
+    --db-primary-dark: #1e40af;
+    
+    /* Secondary Colors */
+    --db-secondary: #64748b;
+    --db-secondary-light: #cbd5e1;
+    --db-secondary-dark: #334155;
+    
+    /* Background Colors */
+    --db-bg-white: #ffffff;
+    --db-bg-light: #f8fafc;
+    --db-bg-darker: #f1f5f9;
+    
+    /* Dark Mode Colors */
+    --db-bg-dark-800: #1e293b;
+    --db-bg-dark-900: #0f172a;
+    --db-bg-dark-950: #020617;
+    
+    /* Border Colors */
+    --db-border-light: #e2e8f0;
+    --db-border-dark: #334155;
+    --db-border-darkest: #1e293b;
+    
+    /* Semantic Colors */
+    --db-success: #10b981;
+    --db-success-light: rgba(16, 185, 129, 0.1);
+    --db-warning: #f59e0b;
+    --db-warning-light: rgba(245, 158, 11, 0.1);
+    --db-danger: #ef4444;
+    --db-danger-light: rgba(239, 68, 68, 0.1);
+    --db-info: #06b6d4;
+    --db-info-light: rgba(6, 182, 212, 0.1);
+    
+    /* Text Colors */
+    --db-text-dark: #0f172a;
+    --db-text-gray: #64748b;
+    --db-text-light: #cbd5e1;
+    --db-text-lighter: #9ca8ba;
+    
+    /* Spacing */
+    --db-spacing-xs: 6px;
+    --db-spacing-sm: 12px;
+    --db-spacing-md: 16px;
+    --db-spacing-lg: 24px;
+    --db-spacing-xl: 32px;
+    --db-spacing-2xl: 48px;
+    
+    /* Border Radius */
+    --db-radius-sm: 6px;
+    --db-radius-md: 12px;
+    --db-radius-lg: 16px;
+    --db-radius-xl: 20px;
+    
+    /* Transitions */
+    --db-trans-fast: 150ms;
+    --db-trans-normal: 300ms;
+    --db-trans-slow: 500ms;
+    
+    /* Shadows */
+    --db-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --db-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --db-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Mode Adjustments */
+.dark {
+    --db-bg-white: #1a222f;
+    --db-bg-light: #1e293b;
+    --db-bg-darker: #334155;
+    
+    --db-text-dark: #f1f5f9;
+    --db-text-gray: #cbd5e1;
+    --db-text-light: #94a3b8;
+    
+    --db-border-light: #334155;
+    --db-border-dark: #1f2937;
+}
+
+/**
+ * ============================================================================
+ * DataBuilder Admin Index Container
+ * ============================================================================
+ */
+
+.databuilder-admin-index {
+    display: flex;
+    flex-direction: column;
+    gap: var(--db-spacing-lg);
+    margin: 0;
+    padding: 0;
+}
+
+/**
+ * ============================================================================
+ * Statistics Section
+ * ============================================================================
+ */
+
+.db-section {
+    display: block;
+    margin: 0;
+}
+
+.db-statistics {
+    width: 100%;
+}
+
+.db-statistics .statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--db-spacing-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/**
+ * ============================================================================
+ * Statistics Card Component
+ * ============================================================================
+ */
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-md);
+    padding: var(--db-spacing-md);
+    background: var(--db-bg-white);
+    border: 1px solid var(--db-border-light);
+    border-radius: var(--db-radius-md);
+    transition: all var(--db-trans-normal) ease;
+    box-shadow: var(--db-shadow-sm);
+    cursor: pointer;
+}
+
+.dark .stat-card {
+    background: var(--db-bg-white);
+    border-color: var(--db-border-light);
+}
+
+.stat-card:hover {
+    border-color: var(--db-primary);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
+}
+
+.stat-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--db-radius-md);
+    flex-shrink: 0;
+    font-size: 24px;
+}
+
+/* Icon Background Colors */
+.stat-card--ADMIN_USERS .stat-card__icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.dark .stat-card--ADMIN_USERS .stat-card__icon {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+.stat-card--RESELLER_USERS .stat-card__icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.dark .stat-card--RESELLER_USERS .stat-card__icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+}
+
+.stat-card--NORMAL_USERS .stat-card__icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.dark .stat-card--NORMAL_USERS .stat-card__icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+}
+
+.stat-card--DOMAINS .stat-card__icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.dark .stat-card--DOMAINS .stat-card__icon {
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+}
+
+.stat-card--FTP_ACCOUNTS .stat-card__icon {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+.dark .stat-card--FTP_ACCOUNTS .stat-card__icon {
+    background: rgba(6, 182, 212, 0.15);
+    color: #67e8f9;
+}
+
+.stat-card--SQL_DATABASES .stat-card__icon {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.dark .stat-card--SQL_DATABASES .stat-card__icon {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+}
+
+.stat-card--SQL_USERS .stat-card__icon {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.dark .stat-card--SQL_USERS .stat-card__icon {
+    background: rgba(236, 72, 153, 0.15);
+    color: #f472b6;
+}
+
+.stat-card--MAIL_ACCOUNTS .stat-card__icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.dark .stat-card--MAIL_ACCOUNTS .stat-card__icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+.stat-card__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-card__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--db-text-dark);
+    line-height: 1;
+    margin: 0 0 var(--db-spacing-xs) 0;
+}
+
+.dark .stat-card__value {
+    color: #f1f5f9;
+}
+
+.stat-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--db-text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.dark .stat-card__label {
+    color: #cbd5e1;
+}
+
+/**
+ * ============================================================================
+ * Traffic Section
+ * ============================================================================
+ */
+
+.db-traffic {
+    background: var(--db-bg-white);
+    border: 1px solid var(--db-border-light);
+    border-radius: var(--db-radius-md);
+    padding: var(--db-spacing-lg);
+    box-shadow: var(--db-shadow-sm);
+}
+
+.dark .db-traffic {
+    background: var(--db-bg-white);
+    border-color: var(--db-border-light);
+}
+
+.traffic-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--db-spacing-md);
+    margin: 0;
+}
+
+.traffic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--db-spacing-md);
+    flex-wrap: wrap;
+}
+
+.traffic-title {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-sm);
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--db-text-dark);
+    flex: 1;
+    min-width: 200px;
+}
+
+.dark .traffic-title {
+    color: #f1f5f9;
+}
+
+.traffic-title .material-symbols-outlined {
+    font-size: 24px;
+    color: var(--db-info);
+}
+
+.traffic-warning {
+    font-size: 13px;
+    color: var(--db-text-gray);
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dark .traffic-warning {
+    color: #cbd5e1;
+}
+
+.traffic-bar-container {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-sm);
+}
+
+.traffic-bar {
+    flex: 1;
+    height: 24px;
+    background: var(--db-bg-darker);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.dark .traffic-bar {
+    background: var(--db-border-light);
+}
+
+.traffic-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    border-radius: 12px;
+    transition: width var(--db-trans-slow) ease;
+}
+
+.traffic-percentage {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--db-primary);
+    text-align: right;
+    min-width: 60px;
+    white-space: nowrap;
+}
+
+/**
+ * ============================================================================
+ * Responsive Design
+ * ============================================================================
+ */
+
+@media (max-width: 1024px) {
+    .db-statistics .statistics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .databuilder-admin-index {
+        gap: var(--db-spacing-md);
+    }
+    
+    .db-statistics .statistics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--db-spacing-sm);
+        gap: var(--db-spacing-sm);
+    }
+    
+    .stat-card__icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 20px;
+    }
+    
+    .stat-card__value {
+        font-size: 24px;
+    }
+    
+    .stat-card__label {
+        font-size: 10px;
+    }
+    
+    .traffic-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .traffic-bar-container {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .traffic-percentage {
+        text-align: left;
+    }
+}
+
+@media (max-width: 480px) {
+    .db-statistics .statistics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        flex-direction: row;
+        text-align: left;
+    }
+}
+
+/**
+ * ============================================================================
+ * Print Styles
+ * ============================================================================
+ */
+
+@media print {
+    .stat-card {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .db-traffic {
+        page-break-inside: avoid;
+    }
+}
+
+/**
+ * ============================================================================
+ * Animation Effects
+ * ============================================================================
+ */
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.stat-card {
+    animation: slideUp var(--db-trans-normal) ease;
+}
+
+.db-traffic {
+    animation: fadeIn var(--db-trans-normal) ease;
+}
+
+/* Stagger animations on multiple cards */
+.databuilder-admin-index .stat-card:nth-child(1) { animation-delay: 0ms; }
+.databuilder-admin-index .stat-card:nth-child(2) { animation-delay: 50ms; }
+.databuilder-admin-index .stat-card:nth-child(3) { animation-delay: 100ms; }
+.databuilder-admin-index .stat-card:nth-child(4) { animation-delay: 150ms; }
+.databuilder-admin-index .stat-card:nth-child(5) { animation-delay: 200ms; }
+.databuilder-admin-index .stat-card:nth-child(6) { animation-delay: 250ms; }
+.databuilder-admin-index .stat-card:nth-child(7) { animation-delay: 300ms; }
+.databuilder-admin-index .stat-card:nth-child(8) { animation-delay: 350ms; }
+.databuilder-admin-index .db-traffic { animation-delay: 400ms; }

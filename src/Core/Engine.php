@@ -144,4 +144,133 @@ class Engine
     {
         return $this->templateEngine;
     }
+    
+    /**
+     * Render a page with the specified layout
+     * 
+     * This is the main entry point for rendering pages. It:
+     * 1. Loads the layout XML file
+     * 2. Builds the block hierarchy via BlockFactory
+     * 3. Renders all blocks through TemplateEngine
+     * 4. Returns the final HTML output
+     * 
+     * @param string $area The area (admin, client, reseller)
+     * @param string $page The page name (e.g., 'index')
+     * @param array $data Optional data to pass to blocks
+     * @return string The rendered HTML output
+     */
+    public function renderPage(string $area, string $page, array $data = []): string
+    {
+        return $this->renderPageContent($area, $page, $data);
+    }
+    
+    /**
+     * Render page content only (without wrapper)
+     * 
+     * Returns ONLY the page content that will be injected into {LAYOUT_CONTENT}
+     * This allows iMSCP to handle variable replacement and wrapper application
+     * 
+     * @param string $area The area (admin, client, reseller)
+     * @param string $page The page name (e.g., 'index')
+     * @param array $data Optional data to pass to blocks
+     * @return string The rendered content HTML
+     */
+    public function renderPageContent(string $area, string $page, array $data = []): string
+    {
+        try {
+            // Dispatch before-render event
+            $this->eventDispatcher->dispatch('page:before-render', [
+                'area' => $area,
+                'page' => $page,
+                'data' => &$data
+            ]);
+            
+            // Determine layout file name (e.g., admin_index)
+            $layoutName = $area . '_' . $page;
+            
+            // Find layout file in theme hierarchy
+            $layoutPath = $this->locateLayoutFile($layoutName);
+            
+            if (!$layoutPath) {
+                throw new \RuntimeException("Layout file not found for: {$layoutName}");
+            }
+            
+            // Store layout data in registry for blocks to access
+            $this->registry->set('layout_data', $data);
+            $this->registry->set('current_area', $area);
+            $this->registry->set('current_page', $page);
+            
+            // Load and parse the layout XML
+            $layoutXml = $this->layoutManager->load($layoutPath);
+            
+            // Build the block hierarchy
+            $rootBlock = $this->layoutManager->buildLayout($layoutXml);
+            
+            if (!$rootBlock) {
+                throw new \RuntimeException("Failed to build layout hierarchy");
+            }
+            
+            // Render the root block (which renders all child blocks)
+            $html = $this->templateEngine->renderBlock($rootBlock);
+            
+            // Dispatch after-render event
+            $this->eventDispatcher->dispatch('page:after-render', [
+                'area' => $area,
+                'page' => $page,
+                'html' => &$html
+            ]);
+            
+            return $html;
+            
+        } catch (\Exception $e) {
+            // Log the error
+            if ($this->config['debug']) {
+                return "<div class='error' style='color:red;padding:20px;margin:20px;border:1px solid red;'>"
+                     . "<h3>DataBuilder Error</h3>"
+                     . "<p><strong>" . htmlspecialchars($e->getMessage()) . "</strong></p>"
+                     . "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>"
+                     . "</div>";
+            }
+            
+            // In production, return empty or fallback
+            error_log("DataBuilder Error: " . $e->getMessage());
+            return "";
+        }
+    }
+    
+    /**
+     * Locate a layout file in the theme hierarchy
+     * 
+     * Searches theme hierarchy: custom/ > default/ > base/
+     * 
+     * @param string $layoutName The layout name (e.g., 'admin_index')
+     * @return string|null The path to the layout file or null if not found
+     */
+    private function locateLayoutFile(string $layoutName): ?string
+    {
+        $themePath = $this->config['themes_path'];
+        $fileName = $layoutName . '.xml';
+        
+        // Determine current theme
+        $theme = $this->config['theme'] ?? 'default';
+        
+        // Search hierarchy: custom > current theme > default > base
+        $searchPaths = [
+            $themePath . '/custom/layouts/' . $fileName,
+            $themePath . '/' . $theme . '/layouts/' . $fileName,
+            $themePath . '/default/layouts/' . $fileName,
+            $themePath . '/base/layouts/' . $fileName,
+        ];
+        
+        foreach ($searchPaths as $path) {
+            // Normalize path separators
+            $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
+            
+            if (file_exists($path) && is_readable($path)) {
+                return $path;
+            }
+        }
+        
+        return null;
+    }
 }

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder Admin Index Layout
+    
+    Defines the structure of the admin dashboard index page
+    This layout file can be overridden in themes/custom/layouts/admin_index.xml
+    
+    Layout Structure:
+    - root: Main container for entire page
+    - head: Header/title section
+    - content: Main content area
+      - statistics: Admin statistics cards section
+      - traffic: Server traffic information section
+-->
+<layout>
+    <name>admin_index</name>
+    <label>Admin Dashboard Index</label>
+    <description>Main dashboard page for administrators</description>
+    
+    <!-- Root container for the entire page -->
+    <block type="container" name="root" template="admin/index.phtml">
+        <attribute key="class" value="databuilder-admin-index"/>
+        <attribute key="data-page" value="admin_index"/>
+        
+        <!-- Page Title/Header Section -->
+        <block type="admin/header" name="admin_header">
+            <attribute key="class" value="db-page-header"/>
+        </block>
+        
+        <!-- Main Statistics Section -->
+        <block type="container" name="statistics_section" template="admin/sections/statistics.phtml">
+            <attribute key="class" value="db-section db-statistics"/>
+            <attribute key="id" value="admin-statistics"/>
+            
+            <!-- Statistics Grid Container -->
+            <block type="container" name="statistics_grid" template="admin/components/grid.phtml">
+                <attribute key="class" value="statistics-grid"/>
+                <attribute key="data-columns" value="auto-fit"/>
+                <attribute key="data-min-width" value="200px"/>
+                
+                <!-- Individual Stat Cards -->
+                <block type="admin/stat_card" name="stat_admin_users">
+                    <data key="icon">admin_panel_settings</data>
+                    <data key="variable">ADMIN_USERS</data>
+                    <data key="label_key">TR_ADMIN_USERS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_reseller_users">
+                    <data key="icon">store</data>
+                    <data key="variable">RESELLER_USERS</data>
+                    <data key="label_key">TR_RESELLER_USERS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_normal_users">
+                    <data key="icon">people</data>
+                    <data key="variable">NORMAL_USERS</data>
+                    <data key="label_key">TR_NORMAL_USERS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_domains">
+                    <data key="icon">language</data>
+                    <data key="variable">DOMAINS</data>
+                    <data key="label_key">TR_DOMAINS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_ftp_accounts">
+                    <data key="icon">folder_open</data>
+                    <data key="variable">FTP_ACCOUNTS</data>
+                    <data key="label_key">TR_FTP_ACCOUNTS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_sql_databases">
+                    <data key="icon">database</data>
+                    <data key="variable">SQL_DATABASES</data>
+                    <data key="label_key">TR_SQL_DATABASES</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_sql_users">
+                    <data key="icon">manage_accounts</data>
+                    <data key="variable">SQL_USERS</data>
+                    <data key="label_key">TR_SQL_USERS</data>
+                </block>
+                
+                <block type="admin/stat_card" name="stat_mail_accounts">
+                    <data key="icon">mail</data>
+                    <data key="variable">MAIL_ACCOUNTS</data>
+                    <data key="label_key">TR_MAIL_ACCOUNTS</data>
+                </block>
+                
+            </block>
+        </block>
+        
+        <!-- Server Traffic Section -->
+        <block type="admin/traffic" name="traffic_section" template="admin/sections/traffic.phtml">
+            <attribute key="class" value="db-section db-traffic"/>
+            <attribute key="id" value="admin-traffic"/>
+            
+            <!-- Traffic data will be loaded by the block -->
+            <data key="traffic_variable">TRAFFIC_PERCENT_WIDTH</data>
+            <data key="traffic_label_key">TR_SERVER_TRAFFIC</data>
+        </block>
+        
+    </block>
+</layout>

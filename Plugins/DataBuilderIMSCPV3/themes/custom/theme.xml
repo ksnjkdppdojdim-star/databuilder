@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<theme>
-    <name>custom</name>
-    <title>Custom Theme</title>
-    <parent>base</parent>
-    <version>1.0.0</version>
-</theme>

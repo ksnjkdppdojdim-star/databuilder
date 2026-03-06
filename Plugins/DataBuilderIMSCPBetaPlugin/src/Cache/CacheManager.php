@@ -24,7 +24,7 @@ class CacheManager
         $this->driver = $driver;
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         return $this->driver->get($key, $default);
     }
@@ -53,7 +53,7 @@ class CacheManager
      * Cache avec callback — pattern "get or compute"
      * Usage : $cache->remember('my_key', fn() => expensiveCompute(), 3600)
      */
-    public function remember(string $key, callable $callback, int $ttl = 0): mixed
+    public function remember(string $key, callable $callback, int $ttl = 0)
     {
         $value = $this->get($key);
 

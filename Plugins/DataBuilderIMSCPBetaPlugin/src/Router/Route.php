@@ -26,7 +26,7 @@ class Route
     public function getHandle(): string     { return $this->handle; }
     public function getParams(): array      { return $this->params; }
 
-    public function getParam(string $key, mixed $default = null): mixed
+    public function getParam(string $key, $default = null)
     {
         return $this->params[$key] ?? $default;
     }

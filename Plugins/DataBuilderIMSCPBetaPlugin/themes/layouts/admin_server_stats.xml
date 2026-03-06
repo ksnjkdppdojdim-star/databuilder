@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Admin Server Statistics Page - Full Layout -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/root.phtml">
+        <!-- SIDEBAR -->
+        <block name="sidebar" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/sidebar.phtml" htmlTag="aside" htmlClass="admin-sidebar"/>
+        
+        <!-- MAIN CONTENT WRAPPER -->
+        <block name="main_wrapper" class="DataBuilder\Block\ContainerBlock" htmlTag="div" htmlClass="main-content-wrapper">
+            <!-- PAGE HEADER -->
+            <block name="page_header" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/page-header.phtml" htmlTag="header" htmlClass="page-header"/>
+            
+            <!-- MAIN CONTENT -->
+            <block name="content" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/content.phtml" htmlTag="main" htmlClass="main-content">
+                <block name="stats_overview" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/overview.phtml" htmlTag="section" htmlClass="stats-section"/>
+                <block name="stats_details" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/details.phtml" htmlTag="section" htmlClass="stats-section"/>
+            </block>
+            
+            <!-- PAGE FOOTER -->
+            <block name="page_footer" class="DataBuilder\Block\ContainerBlock" template="admin/server-stats/page-footer.phtml" htmlTag="footer" htmlClass="page-footer"/>
+        </block>
+    </block>
+</layout>

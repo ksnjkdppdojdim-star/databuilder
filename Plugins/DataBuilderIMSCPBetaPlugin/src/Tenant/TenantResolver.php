@@ -11,7 +11,12 @@ namespace DataBuilder\Tenant;
  */
 class TenantResolver
 {
-    public function __construct(private string $tenantsPath) {}
+    private string $tenantsPath;
+
+    public function __construct(string $tenantsPath)
+    {
+        $this->tenantsPath = $tenantsPath;
+    }
 
     /**
      * Résout le tenant actif.

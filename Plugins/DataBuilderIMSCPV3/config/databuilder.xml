@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<config>
-    <theme>base</theme>
-    <cache_enable>true</cache_enable>
-    <debug>false</debug>
-    <cache_path>cache</cache_path>
-    <themes_path>themes</themes_path>
-    <modules_path>modules</modules_path>
-</config>

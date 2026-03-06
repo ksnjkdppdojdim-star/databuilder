@@ -6,12 +6,12 @@ class Registry
 {
     private array $data = [];
 
-    public function set(string $key, mixed $value): void
+    public function set(string $key, $value): void
     {
         $this->data[$key] = $value;
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         return $this->data[$key] ?? $default;
     }

@@ -24,8 +24,8 @@ interface BlockInterface
     /**
      * Données locales du block
      */
-    public function setData(string $key, mixed $value): void;
-    public function getData(string $key, mixed $default = null): mixed;
+    public function setData(string $key, $value): void;
+    public function getData(string $key, $default = null);
     public function getAllData(): array;
 
     /**

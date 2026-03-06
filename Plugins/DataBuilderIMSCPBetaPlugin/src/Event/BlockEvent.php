@@ -16,10 +16,12 @@ use DataBuilder\Block\BlockInterface;
 class BlockEvent extends AbstractEvent
 {
     private string $html = '';
+    private BlockInterface $block;
 
-    public function __construct(string $name, private BlockInterface $block)
+    public function __construct(string $name, BlockInterface $block)
     {
         parent::__construct($name);
+        $this->block = $block;
     }
 
     public function getBlock(): BlockInterface { return $this->block; }

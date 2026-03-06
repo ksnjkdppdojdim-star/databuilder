@@ -25,6 +25,12 @@ class ContainerBlock extends AbstractBlock
 
     public function render(): string
     {
+        // Si le block a un template, le rendre (avec les enfants disponibles)
+        if (!empty($this->template)) {
+            return parent::render();
+        }
+
+        // Sinon, rendre les enfants enveloppés dans un tag
         $attrs  = '';
         if ($this->htmlClass) $attrs .= ' class="' . htmlspecialchars($this->htmlClass) . '"';
         if ($this->htmlId)    $attrs .= ' id="'    . htmlspecialchars($this->htmlId)    . '"';

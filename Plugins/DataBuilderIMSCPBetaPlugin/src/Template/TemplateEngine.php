@@ -33,7 +33,11 @@ class TemplateEngine
      */
     public function render(string $template, BlockInterface $block, string $module = null): string
     {
-        $path = $this->resolver->resolve($template, $module);
+        try {
+            $path = $this->resolver->resolve($template, $module);
+        } catch (\Throwable $e) {
+            return "<!-- RESOLVER ERROR: " . htmlspecialchars($e->getMessage()) . " -->";
+        }
 
         if ($this->cacheEnabled) {
             return $this->renderCached($path, $block);
@@ -64,7 +68,7 @@ class TemplateEngine
     private function renderFile(string $path, BlockInterface $block): string
     {
         if (!file_exists($path)) {
-            throw new \RuntimeException("Template file not found: [{$path}]");
+            return "<!-- TEMPLATE FILE NOT FOUND: {$path} -->";
         }
 
         // Isolation du scope : seul $block est disponible dans le template
@@ -75,7 +79,7 @@ class TemplateEngine
                 return ob_get_clean();
             } catch (\Throwable $e) {
                 ob_end_clean();
-                throw $e;
+                return "<!-- INCLUDE ERROR: " . htmlspecialchars($e->getMessage()) . " -->";
             }
         };
 

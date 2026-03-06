@@ -9,7 +9,7 @@
 
 return [
     'name'        => 'DataBuilderIMSCPBetaPlugin',
-    'version'     => '1.3.12',
+    'version'     => '1.9.00000000012',
     'build'       => '2026030200',
     'date'        => '2024-01-01',
     'desc'        => 'Magento-like templating system for i-MSCP - Provides modular theming, layout blocks, and flexible template rendering.',

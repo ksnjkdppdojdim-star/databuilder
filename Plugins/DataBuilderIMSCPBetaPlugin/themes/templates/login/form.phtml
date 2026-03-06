@@ -1,0 +1,37 @@
+<form id="login-form" action="<?php echo htmlspecialchars($this->getData('form_action', '/login.php')); ?>" method="POST" class="login-form">
+    <?php if ($this->getData('error')): ?>
+    <div class="alert alert-error">
+        <?php echo htmlspecialchars($this->getData('error')); ?>
+    </div>
+    <?php endif; ?>
+    
+    <div class="form-group">
+        <label for="uname">Username:</label>
+        <input 
+            type="text" 
+            id="uname" 
+            name="uname" 
+            class="form-control" 
+            value="<?php echo htmlspecialchars($this->getData('username', '')); ?>"
+            required 
+            autofocus
+        >
+    </div>
+    
+    <div class="form-group">
+        <label for="upass">Password:</label>
+        <input 
+            type="password" 
+            id="upass" 
+            name="upass" 
+            class="form-control" 
+            required
+        >
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Login</button>
+    
+    <div class="form-footer">
+        <a href="/lostpassword.php">Forgot password?</a>
+    </div>
+</form>

@@ -43,20 +43,32 @@ abstract class AbstractBlock implements BlockInterface
     {
         // Event before
         $before = new BlockEvent('block.render.before', $this);
-        $this->eventDispatcher?->dispatch($before);
+        if ($this->eventDispatcher) {
+            $this->eventDispatcher->dispatch($before);
+        }
         if ($before->isPropagationStopped()) return '';
     
         // Rendu normal
         if (empty($this->template)) {
             $html = $this->renderChildren();
         } else {
-            $html = $this->templateEngine->render($this->template, $this);
+            if ($this->templateEngine === null) {
+                $html = "<!-- ERROR: templateEngine is NULL for {$this->name} -->";
+            } else {
+                try {
+                    $html = $this->templateEngine->render($this->template, $this);
+                } catch (\Throwable $e) {
+                    $html = "<!-- EXCEPTION: " . htmlspecialchars($e->getMessage()) . " -->";
+                }
+            }
         }
     
         // Event after — permet de modifier le HTML produit
         $after = new BlockEvent('block.render.after', $this);
         $after->setHtml($html);
-        $this->eventDispatcher?->dispatch($after);
+        if ($this->eventDispatcher) {
+            $this->eventDispatcher->dispatch($after);
+        }
     
         return $after->getHtml();
     }
@@ -122,12 +134,12 @@ abstract class AbstractBlock implements BlockInterface
 
     // ─── Data ─────────────────────────────────────────────────────────────────
 
-    public function setData(string $key, mixed $value): void
+    public function setData(string $key, $value): void
     {
         $this->data[$key] = $value;
     }
 
-    public function getData(string $key, mixed $default = null): mixed
+    public function getData(string $key, $default = null)
     {
         return $this->data[$key] ?? $default;
     }

@@ -19,7 +19,12 @@ class TenantConfig
     private array $data = [];
     private bool $loaded = false;
 
-    public function __construct(private string $tenantPath) {}
+    private string $tenantPath;
+
+    public function __construct(string $tenantPath)
+    {
+        $this->tenantPath = $tenantPath;
+    }
 
     public function load(): void
     {
@@ -48,7 +53,7 @@ class TenantConfig
         $this->loaded = true;
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         $this->load();
         return $this->data[$key] ?? $default;

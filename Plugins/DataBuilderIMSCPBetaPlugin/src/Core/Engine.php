@@ -124,7 +124,7 @@ class Engine
         $frontController->dispatch($_SERVER['REQUEST_URI'] ?? '/');
     }
 
-    public function getConfig(string $key = null, mixed $default = null): mixed
+    public function getConfig(string $key = null, $default = null)
     {
         if ($key === null) return $this->config;
         return $this->config_obj->get($key, $default);

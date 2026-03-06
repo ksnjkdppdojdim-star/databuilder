@@ -11,8 +11,12 @@ class Config
 {
     private array $data = [];
     private bool $loaded = false;
+    private string $configPath;
 
-    public function __construct(private string $configPath) {}
+    public function __construct(string $configPath)
+    {
+        $this->configPath = $configPath;
+    }
 
     /**
      * Charge la config depuis databuilder.xml + merge avec les overrides runtime
@@ -33,7 +37,7 @@ class Config
         $this->loaded = true;
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         return $this->data[$key] ?? $default;
     }
@@ -83,7 +87,7 @@ class Config
     /**
      * Cast automatique des valeurs XML vers les types PHP natifs
      */
-    private function castValue(string $value): mixed
+    private function castValue(string $value)
     {
         if ($value === 'true')  return true;
         if ($value === 'false') return false;

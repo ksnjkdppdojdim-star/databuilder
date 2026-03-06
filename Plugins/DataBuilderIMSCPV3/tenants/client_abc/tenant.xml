@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<tenant>
-    <id>client_abc</id>
-    <name>Client ABC</name>
-    <theme>custom</theme>
-    <active>true</active>
-    <domain>client-abc.example.com</domain>
-</tenant>

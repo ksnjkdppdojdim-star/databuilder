@@ -12,8 +12,12 @@ class ThemeFallback
 {
     /** @var ThemeConfig[] cache des configs chargées */
     private array $configs = [];
+    private string $themesPath;
 
-    public function __construct(private string $themesPath) {}
+    public function __construct(string $themesPath)
+    {
+        $this->themesPath = $themesPath;
+    }
 
     /**
      * Construit la chaîne complète pour un thème donné.

@@ -15,7 +15,12 @@ class ModuleLoader
 {
     private array $modules = [];
 
-    public function __construct(private array $config) {}
+    private array $config;
+
+    public function __construct(array $config)
+    {
+        $this->config = $config;
+    }
 
     public function load(): void
     {

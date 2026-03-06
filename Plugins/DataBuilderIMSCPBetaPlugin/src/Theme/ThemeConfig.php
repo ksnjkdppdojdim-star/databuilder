@@ -9,8 +9,12 @@ class ThemeConfig
 {
     private array $data = [];
     private bool $loaded = false;
+    private string $themePath;
 
-    public function __construct(private string $themePath) {}
+    public function __construct(string $themePath)
+    {
+        $this->themePath = $themePath;
+    }
 
     public function load(): void
     {
@@ -39,7 +43,7 @@ class ThemeConfig
         $this->loaded = true;
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         $this->load();
         return $this->data[$key] ?? $default;

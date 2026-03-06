@@ -8,14 +8,17 @@ namespace DataBuilder\Cache;
  */
 class FileCache implements CacheInterface
 {
-    public function __construct(private string $cachePath)
+    private string $cachePath;
+
+    public function __construct(string $cachePath)
     {
+        $this->cachePath = $cachePath;
         if (!is_dir($this->cachePath)) {
             mkdir($this->cachePath, 0755, true);
         }
     }
 
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         $file = $this->getFilePath($key);
 

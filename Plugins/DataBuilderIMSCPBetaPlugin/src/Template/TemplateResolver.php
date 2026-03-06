@@ -65,7 +65,7 @@ class TemplateResolver
         try {
             $this->resolve($template, $module);
             return true;
-        } catch (\RuntimeException) {
+        } catch (\RuntimeException $e) {
             return false;
         }
     }

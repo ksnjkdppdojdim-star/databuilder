@@ -1,0 +1,14 @@
+<?php
+/**
+ * Server Statistic Page - Total Traffic Template
+ * 
+ * @var $block DataBuilder\Block\ContainerBlock
+ */
+$tr_all = $block->getData('TR_ALL', 'Total');
+$all_all = $block->getData('ALL_ALL', '0 B');
+?>
+<div class="total-traffic">
+    <span class="label"><?= $block->e($tr_all) ?>:</span>
+    <span class="value"><?= $block->e($all_all) ?></span>
+</div>
+

@@ -1,0 +1,325 @@
+<?php
+/**
+ * DataBuilder Custom Server Statistics Page
+ * Override du template server_statistic.tpl d'i-MSCP
+ * 
+ * Available variables from i-MSCP:
+ * - TR_DAY, TR_MONTH, TR_YEAR
+ * - day_list, month_list, year_list
+ * - WEB_IN, WEB_OUT, SMTP_IN, SMTP_OUT, etc.
+ * - WEB_IN_ALL, WEB_OUT_ALL, SMTP_IN_ALL, etc.
+ * - server_stats_day, server_stats_by_month, server_stats_hour
+ */
+?>
+<div class="databuilder-server-stats">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1><?= $this->escape($this->getData('PAGE_TITLE') ?? 'Server Statistics') ?></h1>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form method="post">
+            <div class="filter-group">
+                <label for="day"><?= $this->escape($this->getData('TR_DAY') ?? 'Day') ?></label>
+                <select name="day" id="day">
+                    <?= $this->getData('day_list', '') ?>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="month"><?= $this->escape($this->getData('TR_MONTH') ?? 'Month') ?></label>
+                <select name="month" id="month">
+                    <?= $this->getData('month_list', '') ?>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="year"><?= $this->escape($this->getData('TR_YEAR') ?? 'Year') ?></label>
+                <select name="year" id="year">
+                    <?= $this->getData('year_list', '') ?>
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Service Summary Cards -->
+    <div class="service-summary">
+        <div class="service-card web">
+            <div class="service-icon">🌐</div>
+            <div class="service-label">WEB</div>
+            <div class="service-values">
+                <span class="in"><?= $this->escape($this->getData('WEB_IN_ALL') ?? '0 B') ?></span>
+                <span class="separator">/</span>
+                <span class="out"><?= $this->escape($this->getData('WEB_OUT_ALL') ?? '0 B') ?></span>
+            </div>
+        </div>
+        
+        <div class="service-card smtp">
+            <div class="service-icon">📧</div>
+            <div class="service-label">SMTP</div>
+            <div class="service-values">
+                <span class="in"><?= $this->escape($this->getData('SMTP_IN_ALL') ?? '0 B') ?></span>
+                <span class="separator">/</span>
+                <span class="out"><?= $this->escape($this->getData('SMTP_OUT_ALL') ?? '0 B') ?></span>
+            </div>
+        </div>
+        
+        <div class="service-card pop">
+            <div class="service-icon">📥</div>
+            <div class="service-label">POP3/IMAP</div>
+            <div class="service-values">
+                <span class="in"><?= $this->escape($this->getData('POP_IN_ALL') ?? '0 B') ?></span>
+                <span class="separator">/</span>
+                <span class="out"><?= $this->escape($this->getData('POP_OUT_ALL') ?? '0 B') ?></span>
+            </div>
+        </div>
+        
+        <div class="service-card other">
+            <div class="service-icon">⚡</div>
+            <div class="service-label">OTHER</div>
+            <div class="service-values">
+                <span class="in"><?= $this->escape($this->getData('OTHER_IN_ALL') ?? '0 B') ?></span>
+                <span class="separator">/</span>
+                <span class="out"><?= $this->escape($this->getData('OTHER_OUT_ALL') ?? '0 B') ?></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Traffic -->
+    <div class="total-traffic">
+        <span class="label">Total Traffic:</span>
+        <span class="value"><?= $this->escape($this->getData('ALL_ALL') ?? '0 B') ?></span>
+    </div>
+
+    <!-- Monthly Stats Table -->
+    <?php if ($this->getData('server_stats_by_month')): ?>
+    <div class="stats-table-container">
+        <h3><?= $this->escape($this->getData('TR_MONTHLY_STATS') ?? 'Monthly Statistics') ?></h3>
+        <table class="stats-table monthly">
+            <thead>
+                <tr>
+                    <th><?= $this->escape($this->getData('TR_DAY') ?? 'Day') ?></th>
+                    <th><?= $this->escape($this->getData('TR_WEB_IN') ?? 'Web In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_WEB_OUT') ?? 'Web Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_SMTP_IN') ?? 'SMTP In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_SMTP_OUT') ?? 'SMTP Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_POP_IN') ?? 'POP In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_POP_OUT') ?? 'POP Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_OTHER_IN') ?? 'Other In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_OTHER_OUT') ?? 'Other Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL_IN') ?? 'Total In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL_OUT') ?? 'Total Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL') ?? 'Total') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?= $this->getData('server_stats_day', '') ?>
+            </tbody>
+            <tfoot>
+                <tr class="totals">
+                    <td><?= $this->escape($this->getData('TR_ALL') ?? 'All') ?></td>
+                    <td><?= $this->escape($this->getData('WEB_IN_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('WEB_OUT_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('SMTP_IN_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('SMTP_OUT_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('POP_IN_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('POP_OUT_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('OTHER_IN_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('OTHER_OUT_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('ALL_IN_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('ALL_OUT_ALL') ?? '0 B') ?></td>
+                    <td><?= $this->escape($this->getData('ALL_ALL') ?? '0 B') ?></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <?php endif; ?>
+
+    <!-- Daily Stats Table -->
+    <?php if ($this->getData('server_stats_by_day')): ?>
+    <div class="stats-table-container">
+        <h3><?= $this->escape($this->getData('TR_DAILY_STATS') ?? 'Daily Statistics') ?></h3>
+        <table class="stats-table daily">
+            <thead>
+                <tr>
+                    <th><?= $this->escape($this->getData('TR_HOUR') ?? 'Hour') ?></th>
+                    <th><?= $this->escape($this->getData('TR_WEB_IN') ?? 'Web In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_WEB_OUT') ?? 'Web Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_SMTP_IN') ?? 'SMTP In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_SMTP_OUT') ?? 'SMTP Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_POP_IN') ?? 'POP In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_POP_OUT') ?? 'POP Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_OTHER_IN') ?? 'Other In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_OTHER_OUT') ?? 'Other Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL_IN') ?? 'Total In') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL_OUT') ?? 'Total Out') ?></th>
+                    <th><?= $this->escape($this->getData('TR_ALL') ?? 'Total') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?= $this->getData('server_stats_hour', '') ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
+
+<style>
+.databuilder-server-stats {
+    padding: 20px;
+}
+
+.databuilder-server-stats .page-header h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.databuilder-server-stats .filter-bar {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.databuilder-server-stats .filter-bar form {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.databuilder-server-stats .filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.databuilder-server-stats .filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.databuilder-server-stats .filter-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.databuilder-server-stats .service-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.databuilder-server-stats .service-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.databuilder-server-stats .service-card .service-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.databuilder-server-stats .service-card .service-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.databuilder-server-stats .service-card .service-values {
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.databuilder-server-stats .service-card .service-values .in {
+    color: #28a745;
+}
+
+.databuilder-server-stats .service-card .service-values .out {
+    color: #dc3545;
+}
+
+.databuilder-server-stats .service-card .service-values .separator {
+    color: #999;
+    margin: 0 5px;
+}
+
+.databuilder-server-stats .total-traffic {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.databuilder-server-stats .total-traffic .label {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.databuilder-server-stats .total-traffic .value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.databuilder-server-stats .stats-table-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.databuilder-server-stats .stats-table-container h3 {
+    padding: 15px 20px;
+    margin: 0;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-size: 16px;
+}
+
+.databuilder-server-stats .stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.databuilder-server-stats .stats-table th,
+.databuilder-server-stats .stats-table td {
+    padding: 10px 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.databuilder-server-stats .stats-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+.databuilder-server-stats .stats-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.databuilder-server-stats .stats-table tfoot {
+    background: #e9ecef;
+    font-weight: bold;
+}
+
+.databuilder-server-stats .stats-table tfoot td {
+    border-top: 2px solid #dee2e6;
+}
+</style>
+

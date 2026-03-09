@@ -87,18 +87,22 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             }
         );
 
-        // TEMPORARILY DISABLED: Template override hook requires getRootDir() method
-        // which doesn't exist in iMSCP\TemplateEngine
-        // TODO: Re-enable once we find an alternative approach
-        /*
+        // Template override hook (Magento-like theme fallback for non-DataBuilder pages)
         $events->registerListener(
             iMSCP_Events::onBeforeLoadTemplateFile,
             function (iMSCP_Events_Event $event) {
                 $this->handleTemplateOverride($event);
             }
         );
-        */
-        
+
+        // Controller injection: replace template content with DataBuilder controller output
+        $events->registerListener(
+            iMSCP_Events::onAfterLoadTemplateFile,
+            function (iMSCP_Events_Event $event) {
+                $this->handleAfterTemplateLoad($event);
+            }
+        );
+
         // Register navigation for admin
         $events->registerListener(
             iMSCP_Events::onAdminScriptStart,
@@ -116,53 +120,221 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
         );
     }
 
+
     /**
      * Handle template file override (Magento-like theme fallback)
-     * 
-     * This intercepts template loading and checks if there's a DataBuilder
-     * override in the theme directory
+     *
+     * Only runs when DataBuilder theme is active. Redirects rootDir so iMSCP
+     * loads custom overrides from the plugin themes directory when they exist.
+     * When the default/other theme is active this method exits immediately,
+     * leaving iMSCP behaviour completely untouched.
+     *
+     * IMPORTANT: pages that have a registered DataBuilder controller are SKIPPED
+     * here entirely. Those pages are handled by handleAfterTemplateLoad() which
+     * replaces the template content AFTER the file loads, without touching rootDir.
+     * If we were to call getOverrideDirectory() for e.g. server_statistic, we
+     * would find themes/custom/admin/server_statistic/ (the phtml blocks dir),
+     * setRootDir() to themes/custom/admin, and then ALL subsequent templates
+     * (layout, messages, nav...) would load from the wrong directory.
      *
      * @param iMSCP_Events_Event $event
      * @return void
      */
     private function handleTemplateOverride(iMSCP_Events_Event $event): void
     {
-        $templatePath = $event->getParam('templatePath');
-        
-        if (empty($templatePath)) {
+        // Only interfere when DataBuilder theme is explicitly active
+        if (!$this->isDataBuilderThemeActive()) {
             return;
         }
-        
-        // Get template engine context
+
         $context = $event->getParam('context');
         if (!$context instanceof \iMSCP\TemplateEngine) {
             return;
         }
-        
-        // Extract template name from path
-        // e.g., /path/to/themes/default/admin/admin_log.tpl -> admin/admin_log
-        $rootDir = $context->getRootDir();
-        $relativePath = str_replace($rootDir . '/', '', $templatePath);
-        
-        // Check if this is a .tpl file that can be overridden
-        if (strpos($relativePath, '.tpl') === false) {
+
+        $templatePath = $event->getParam('templatePath');
+        if (empty($templatePath)) {
             return;
         }
-        
-        // Convert admin_log.tpl to admin_log/ directory
-        $overrideDir = $this->getOverrideDirectory($relativePath);
-        
+
+        $fileName = basename($templatePath, '.tpl');
+
+        // Pages with a DataBuilder controller are handled by handleAfterTemplateLoad.
+        // Do NOT touch rootDir for them — it would corrupt template loading globally.
+        $controllerMap = [
+            'server_statistic' => true,
+        ];
+        if (isset($controllerMap[$fileName])) {
+            return;
+        }
+
+        // Use Reflection to read the protected $rootDir
+        $reflection    = new \ReflectionClass($context);
+        $rootDirProp   = $reflection->getProperty('rootDir');
+        $rootDirProp->setAccessible(true);
+        $rootDir = $rootDirProp->getValue($context);
+
+        // Extract relative path and resolve a possible Magento-style override dir
+        $relativePath = str_replace([$rootDir . '/', $rootDir . '\\'], '', $templatePath);
+        $overrideDir  = $this->getOverrideDirectory($relativePath);
+
         if ($overrideDir !== null && is_dir($overrideDir)) {
-            // Override found! Modify the template path
             $context->setRootDir(dirname($overrideDir));
-            
-            // The dynamic template name will be the folder name
-            $folderName = basename($overrideDir);
-            
-            // Store original root dir for later restore
             $event->setParam('databuilder_original_root', $rootDir);
             $event->setParam('databuilder_override_dir', $overrideDir);
         }
+    }
+
+    /**
+     * Inject DataBuilder controller output into a page template after it loads.
+     *
+     * Fires on onAfterLoadTemplateFile. When DataBuilder theme is active and a
+     * controller is registered for the page, the controller renders its blocks
+     * and the result replaces the raw template content.
+     *
+     * IMPORTANT: The content must be plain HTML — no <!-- BDP: xxx --> markers.
+     * iMSCP's devide_dynamic() extracts BDP blocks and replaces them with {VAR}
+     * placeholders in dtplData, so wrapping in BDP markers would cause LAYOUT_CONTENT
+     * to become an unresolved {PAGE} placeholder instead of the DataBuilder HTML.
+     *
+     * @param iMSCP_Events_Event $event
+     * @return void
+     */
+    private function handleAfterTemplateLoad(iMSCP_Events_Event $event): void
+    {
+        if (!$this->isDataBuilderThemeActive()) {
+            return;
+        }
+
+        $context = $event->getParam('context');
+        if (!$context instanceof \iMSCP\TemplateEngine) {
+            return;
+        }
+
+        $templatePath = $event->getParam('templatePath');
+        if (empty($templatePath)) {
+            return;
+        }
+
+        // Only intercept page templates (admin/*, client/*, reseller/*), not layouts.
+        $fileName = basename($templatePath, '.tpl');
+        if (in_array($fileName, ['ui', 'index', 'layout', 'simple'], true)) {
+            return;
+        }
+
+        // Static cache: devide_dynamic calls get_file once and caches dtplData, but
+        // using a static cache here is a safeguard against any double invocation.
+        static $resultCache = [];
+        if (!array_key_exists($fileName, $resultCache)) {
+            $resultCache[$fileName] = $this->executeDataBuilderController($fileName, $context);
+        }
+
+        $controllerResult = $resultCache[$fileName];
+        if ($controllerResult === null) {
+            return;
+        }
+
+        error_log('DataBuilder: injecting controller output for ' . $fileName . ' (' . strlen($controllerResult) . ' bytes)');
+
+        // Plain HTML — no BDP/EDP wrapper. devide_dynamic will see no block markers
+        // and return the HTML as-is, so LAYOUT_CONTENT receives the full output.
+        $event->setParam('templateContent', $controllerResult);
+    }
+
+    /**
+     * Execute DataBuilder controller if one exists for the page
+     * 
+     * @param string $pageName Page name (template name without extension)
+     * @param \iMSCP\TemplateEngine $context Template engine context
+     * @return string|null Controller output or null if no controller exists
+     */
+    private function executeDataBuilderController(string $pageName, \iMSCP\TemplateEngine $context): ?string
+    {
+        // Map page names to controller classes
+        $controllerMap = [
+            'server_statistic' => 'DataBuilder\\Controller\\ServerStatisticController',
+            // Add more page -> controller mappings here
+        ];
+        
+        if (!isset($controllerMap[$pageName])) {
+            return null;
+        }
+        
+        $controllerClass = $controllerMap[$pageName];
+        
+        // Check if controller class exists
+        if (!class_exists($controllerClass)) {
+            return null;
+        }
+        
+        try {
+            // Initialize DataBuilder components
+            $config = $this->getDataBuilderConfig($context);
+            
+            $registry = new \DataBuilder\Core\Registry();
+            $registry->set('config', $config);
+            
+            $layoutManager = new \DataBuilder\Layout\LayoutManager($config, $registry);
+            $blockFactory = new \DataBuilder\Block\BlockFactory($registry);
+            
+            $templateConfig = [
+                'themes_path'  => $config['themes_path'],
+                'theme'        => $config['theme'],
+                'modules_path' => $config['modules_path'],
+                'cache_path'   => $config['cache_path'],
+                'cache_enable' => $config['cache_enable'],
+            ];
+            
+            $templateEngine = new \DataBuilder\Template\TemplateEngine($templateConfig);
+            
+            // Create route object (method, path, controller, action, handle, params)
+            $route = new \DataBuilder\Router\Route(
+                'GET',
+                '/admin/' . $pageName,
+                $controllerClass,
+                'execute',
+                $pageName,
+                []
+            );
+            
+            // Instantiate controller
+            $controller = new $controllerClass(
+                $route,
+                $registry,
+                $layoutManager,
+                $blockFactory,
+                $templateEngine
+            );
+            
+            // Execute controller and return output
+            return $controller->execute();
+            
+        } catch (\Throwable $e) {
+            // Log error but don't break the page
+            error_log('DataBuilder Controller Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Get DataBuilder configuration from i-MSCP context
+     * 
+     * @param \iMSCP\TemplateEngine $context
+     * @return array Configuration array
+     */
+    private function getDataBuilderConfig(\iMSCP\TemplateEngine $context): array
+    {
+        $imscpRoot = $this->findImscpRoot();
+        
+        return [
+            'gui_path'          => $imscpRoot . '/gui',
+            'plugin_path'      => __DIR__,
+            'theme'            => 'databuilder',
+            'themes_path'      => __DIR__ . '/themes',
+            'modules_path'     => __DIR__ . '/modules',
+            'cache_path'       => $imscpRoot . '/gui/data/cache/databuilder-templates',
+            'cache_enable'     => false,
+        ];
     }
     
     /**
@@ -210,27 +382,67 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     /**
      * Get current i-MSCP theme
      * 
-     * @return string
+     * Tries multiple methods to detect the current theme:
+     * 1. From session user_theme
+     * 2. From config ROOT_TEMPLATE_PATH
+     * 3. From config USER_INITIAL_THEME
+     * 
+     * @return string The current theme name
      */
     private function getCurrentImscpTheme(): string
     {
-        if (defined('IMSCP_THEME')) {
-            return IMSCP_THEME;
+        // Method 1: Try session first
+        if (!empty($_SESSION['user_theme'])) {
+            return $_SESSION['user_theme'];
         }
         
-        // Try to get from config
+        // Method 2: Try config ROOT_TEMPLATE_PATH
         try {
-            if (iMSCP_Registry::isRegistered('config')) {
-                $config = iMSCP_Registry::get('config');
-                if (isset($config['USER_THEME'])) {
-                    return $config['USER_THEME'];
+            $cfg = \iMSCP\Registry::get('config');
+            
+            if (!empty($cfg['ROOT_TEMPLATE_PATH'])) {
+                // Extract theme name from path like /var/www/imscp/gui/themes/databuilder
+                $path = $cfg['ROOT_TEMPLATE_PATH'];
+                $themeName = basename($path);
+                if (!empty($themeName)) {
+                    return $themeName;
                 }
             }
+            
+            // Method 3: Fallback to default theme
+            return $cfg['USER_INITIAL_THEME'] ?? 'default';
+            
         } catch (\Exception $e) {
-            // Config not available
+            // If registry is not available, return default
+            return 'default';
         }
+    }
+    
+    /**
+     * Check if DataBuilder theme is currently active
+     * 
+     * @return bool True if DataBuilder theme is the active theme
+     */
+    private function isDataBuilderThemeActive(): bool
+    {
+        $currentTheme = $this->getCurrentImscpTheme();
+        $isDatabuilder = $currentTheme === 'databuilder';
         
-        return 'default';
+        // Debug output to PHP error log
+        error_log('=== DataBuilder Theme Check ===');
+        error_log('Current theme detected: ' . $currentTheme);
+        error_log('Is DataBuilder theme active: ' . ($isDatabuilder ? 'YES' : 'NO'));
+        error_log('Session user_theme: ' . ($_SESSION['user_theme'] ?? 'NOT SET'));
+        
+        try {
+            $cfg = \iMSCP\Registry::get('config');
+            error_log('Config ROOT_TEMPLATE_PATH: ' . ($cfg['ROOT_TEMPLATE_PATH'] ?? 'NOT SET'));
+        } catch (\Exception $e) {
+            error_log('Could not get config: ' . $e->getMessage());
+        }
+        error_log('==============================');
+        
+        return $isDatabuilder;
     }
 
     /**
@@ -247,6 +459,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             
             // Install DataBuilder theme in iMSCP themes directory
             $this->installTheme($pluginManager);
+            
+            // Install TemplateEngine hook for DataBuilder functionality
+            $this->installTemplateEngineHook();
             
             write_log('DataBuilderIMSCPPlugin installed successfully', E_USER_NOTICE);
         } catch (Exception $e) {
@@ -270,6 +485,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             // Update theme files (preserves customizations)
             $this->installTheme($pluginManager);
             
+            // Re-install TemplateEngine hook (in case of updates)
+            $this->installTemplateEngineHook();
+            
             write_log('DataBuilderIMSCPPlugin updated to version ' . $toVersion, E_USER_NOTICE);
         } catch (Exception $e) {
             throw new iMSCP_Plugin_Exception(
@@ -286,6 +504,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
         try {
             // Remove DataBuilder theme from iMSCP themes directory
             $this->uninstallTheme($pluginManager);
+            
+            // Remove TemplateEngine hook
+            $this->uninstallTemplateEngineHook();
             
             // Clean up if needed (but keep user data)
             write_log('DataBuilderIMSCPPlugin uninstalled', E_USER_NOTICE);
@@ -583,6 +804,17 @@ function databuilder_get_template_content($template, $data = []) {
             }
         }
         
+        // Copy admin .tpl overrides (server_statistic.tpl, index.tpl, etc.)
+        // These must exist in the databuilder theme dir so iMSCP's is_safe() check passes.
+        $pluginAdminTplDir = $pluginThemesDir . '/admin';
+        $themeAdminDir     = $databuilderThemeDir . '/admin';
+        if (is_dir($pluginAdminTplDir)) {
+            if (!is_dir($themeAdminDir)) {
+                mkdir($themeAdminDir, 0755, true);
+            }
+            $this->copyDirectory($pluginAdminTplDir, $themeAdminDir);
+        }
+
         // Copy templates directory (generic templates for blocks)
         $pluginTemplatesDir = $pluginThemesDir . '/templates';
         $themeTemplatesDir = $databuilderThemeDir . '/templates';
@@ -824,5 +1056,52 @@ function databuilder_get_template_content($template, $data = []) {
         }
         
         rmdir($dir);
+    }
+
+    /**
+     * Install TemplateEngine hook for DataBuilder functionality
+     * 
+     * This copies the TemplateEngineDatabuilderHook.php file to the iMSCP gui/src directory
+     * to provide getRootDir() method needed for DataBuilder template override system.
+     * 
+     * @return void
+     */
+    private function installTemplateEngineHook(): void
+    {
+        $imscpRoot = $this->findImscpRoot();
+        $srcDir = $imscpRoot . '/gui/src';
+        $hookSource = __DIR__ . '/hooks/TemplateEngineDatabuilderHook.php';
+        $hookDest = $srcDir . '/TemplateEngineDatabuilderHook.php';
+        
+        // Ensure source directory exists
+        if (!is_dir($srcDir)) {
+            mkdir($srcDir, 0755, true);
+        }
+        
+        // Copy the hook file
+        if (file_exists($hookSource)) {
+            copy($hookSource, $hookDest);
+            write_log('DataBuilder TemplateEngine hook installed in: ' . $hookDest, E_USER_NOTICE);
+        } else {
+            write_log('DataBuilder TemplateEngine hook source not found: ' . $hookSource, E_USER_WARNING);
+        }
+    }
+
+    /**
+     * Uninstall TemplateEngine hook
+     * 
+     * This removes the TemplateEngineDatabuilderHook.php file from the iMSCP gui/src directory
+     * 
+     * @return void
+     */
+    private function uninstallTemplateEngineHook(): void
+    {
+        $imscpRoot = $this->findImscpRoot();
+        $hookFile = $imscpRoot . '/gui/src/TemplateEngineDatabuilderHook.php';
+        
+        if (file_exists($hookFile)) {
+            unlink($hookFile);
+            write_log('DataBuilder TemplateEngine hook removed from: ' . $hookFile, E_USER_NOTICE);
+        }
     }
 }

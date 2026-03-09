@@ -1,0 +1,40 @@
+<?php
+/**
+ * Server Statistic Page - Filter Bar Template
+ * 
+ * @var $block DataBuilder\Block\ContainerBlock
+ */
+$tr_day = $block->getData('TR_DAY', 'Day');
+$tr_month = $block->getData('TR_MONTH', 'Month');
+$tr_year = $block->getData('TR_YEAR', 'Year');
+$day_list = $block->getData('day_list', '');
+$month_list = $block->getData('month_list', '');
+$year_list = $block->getData('year_list', '');
+?>
+<div class="filter-bar">
+    <form method="post">
+        <div class="filter-group">
+            <label for="day"><?= $block->e($tr_day) ?></label>
+            <select name="day" id="day">
+                <?= $day_list ?>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="month"><?= $block->e($tr_month) ?></label>
+            <select name="month" id="month">
+                <?= $month_list ?>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="year"><?= $block->e($tr_year) ?></label>
+            <select name="year" id="year">
+                <?= $year_list ?>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn-filter"><?= $block->e($block->getData('TR_FILTER', 'Filter')) ?></button>
+    </form>
+</div>
+

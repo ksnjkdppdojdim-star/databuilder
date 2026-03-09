@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Root block for login page -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock" template="login/root.phtml">
+        <!-- Header block -->
+        <block name="header" class="DataBuilder\Block\ContainerBlock" template="login/header.phtml"/>
+        
+        <!-- Content wrapper -->
+        <block name="content" class="DataBuilder\Block\ContainerBlock" template="login/content.phtml">
+            <!-- Login form block -->
+            <block name="login_form" class="DataBuilder\Block\Login\LoginForm" template="login/form.phtml"/>
+        </block>
+        
+        <!-- Footer block -->
+        <block name="footer" class="DataBuilder\Block\ContainerBlock" template="login/footer.phtml"/>
+    </block>
+</layout>

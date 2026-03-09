@@ -1,0 +1,93 @@
+<?php
+/**
+ * Server Statistic Page - Stats Table Template
+ * 
+ * @var $block DataBuilder\Block\ContainerBlock
+ */
+
+$tr_day = $block->getData('TR_DAY', 'Day');
+$tr_web_in = $block->getData('TR_WEB_IN', 'Web In');
+$tr_web_out = $block->getData('TR_WEB_OUT', 'Web Out');
+$tr_smtp_in = $block->getData('TR_SMTP_IN', 'SMTP In');
+$tr_smtp_out = $block->getData('TR_SMTP_OUT', 'SMTP Out');
+$tr_pop_in = $block->getData('TR_POP_IN', 'POP In');
+$tr_pop_out = $block->getData('TR_POP_OUT', 'POP Out');
+$tr_other_in = $block->getData('TR_OTHER_IN', 'Other In');
+$tr_other_out = $block->getData('TR_OTHER_OUT', 'Other Out');
+$tr_all_in = $block->getData('TR_ALL_IN', 'Total In');
+$tr_all_out = $block->getData('TR_ALL_OUT', 'Total Out');
+$tr_all = $block->getData('TR_ALL', 'Total');
+
+// Get monthly stats data
+$server_stats_by_month = $block->getData('server_stats_by_month', []);
+
+$web_in_all = $block->getData('WEB_IN_ALL', '0 B');
+$web_out_all = $block->getData('WEB_OUT_ALL', '0 B');
+$smtp_in_all = $block->getData('SMTP_IN_ALL', '0 B');
+$smtp_out_all = $block->getData('SMTP_OUT_ALL', '0 B');
+$pop_in_all = $block->getData('POP_IN_ALL', '0 B');
+$pop_out_all = $block->getData('POP_OUT_ALL', '0 B');
+$other_in_all = $block->getData('OTHER_IN_ALL', '0 B');
+$other_out_all = $block->getData('OTHER_OUT_ALL', '0 B');
+$all_in_all = $block->getData('ALL_IN_ALL', '0 B');
+$all_out_all = $block->getData('ALL_OUT_ALL', '0 B');
+$all_all = $block->getData('ALL_ALL', '0 B');
+?>
+<?php if (!empty($server_stats_by_month)): ?>
+<div class="stats-table-container">
+    <h3><?= $block->e($block->getData('TR_MONTHLY_STATS', 'Monthly Statistics')) ?></h3>
+    <table class="stats-table monthly">
+        <thead>
+            <tr>
+                <th><?= $block->e($tr_day) ?></th>
+                <th><?= $block->e($tr_web_in) ?></th>
+                <th><?= $block->e($tr_web_out) ?></th>
+                <th><?= $block->e($tr_smtp_in) ?></th>
+                <th><?= $block->e($tr_smtp_out) ?></th>
+                <th><?= $block->e($tr_pop_in) ?></th>
+                <th><?= $block->e($tr_pop_out) ?></th>
+                <th><?= $block->e($tr_other_in) ?></th>
+                <th><?= $block->e($tr_other_out) ?></th>
+                <th><?= $block->e($tr_all_in) ?></th>
+                <th><?= $block->e($tr_all_out) ?></th>
+                <th><?= $block->e($tr_all) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($server_stats_by_month as $stat): ?>
+            <tr>
+                <td><?= $block->e($stat['date']) ?></td>
+                <td><?= $block->e($stat['web_in']) ?></td>
+                <td><?= $block->e($stat['web_out']) ?></td>
+                <td><?= $block->e($stat['smtp_in']) ?></td>
+                <td><?= $block->e($stat['smtp_out']) ?></td>
+                <td><?= $block->e($stat['pop_in']) ?></td>
+                <td><?= $block->e($stat['pop_out']) ?></td>
+                <td><?= $block->e($stat['other_in']) ?></td>
+                <td><?= $block->e($stat['other_out']) ?></td>
+                <td><?= $block->e($stat['all_in']) ?></td>
+                <td><?= $block->e($stat['all_out']) ?></td>
+                <td><?= $block->e($stat['total']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr class="totals">
+                <td><?= $block->e($tr_all) ?></td>
+                <td><?= $block->e($web_in_all) ?></td>
+                <td><?= $block->e($web_out_all) ?></td>
+                <td><?= $block->e($smtp_in_all) ?></td>
+                <td><?= $block->e($smtp_out_all) ?></td>
+                <td><?= $block->e($pop_in_all) ?></td>
+                <td><?= $block->e($pop_out_all) ?></td>
+                <td><?= $block->e($other_in_all) ?></td>
+                <td><?= $block->e($other_out_all) ?></td>
+                <td><?= $block->e($all_in_all) ?></td>
+                <td><?= $block->e($all_out_all) ?></td>
+                <td><?= $block->e($all_all) ?></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<?php endif; ?>
+

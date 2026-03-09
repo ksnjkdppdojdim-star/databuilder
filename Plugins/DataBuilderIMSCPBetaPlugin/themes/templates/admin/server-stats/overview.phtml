@@ -1,0 +1,94 @@
+<?php
+/**
+ * Server overview section - Traffic statistics
+ */
+?>
+<section class="stats-overview">
+    <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #1f2937;">Service Breakdown - Last 24 Hours</h2>
+    
+    <div class="overview-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <!-- WEB Traffic -->
+        <div class="card" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #666; margin: 0; font-weight: 500;">WEB Traffic</h3>
+                    <p style="font-size: 12px; color: #999; margin: 3px 0 0 0;">In / Out</p>
+                </div>
+                <span style="font-size: 24px;">🌐</span>
+            </div>
+            <p style="font-size: 13px; color: #1f2937; margin: 0; font-weight: 600;">
+                <?php echo htmlspecialchars($block->getData('WEB_IN_ALL') ?? '0 B'); ?> / <?php echo htmlspecialchars($block->getData('WEB_OUT_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+        
+        <!-- SMTP Traffic -->
+        <div class="card" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #666; margin: 0; font-weight: 500;">SMTP Traffic</h3>
+                    <p style="font-size: 12px; color: #999; margin: 3px 0 0 0;">In / Out</p>
+                </div>
+                <span style="font-size: 24px;">📧</span>
+            </div>
+            <p style="font-size: 13px; color: #1f2937; margin: 0; font-weight: 600;">
+                <?php echo htmlspecialchars($block->getData('SMTP_IN_ALL') ?? '0 B'); ?> / <?php echo htmlspecialchars($block->getData('SMTP_OUT_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+        
+        <!-- POP/IMAP Traffic -->
+        <div class="card" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #666; margin: 0; font-weight: 500;">POP/IMAP Traffic</h3>
+                    <p style="font-size: 12px; color: #999; margin: 3px 0 0 0;">In / Out</p>
+                </div>
+                <span style="font-size: 24px;">📬</span>
+            </div>
+            <p style="font-size: 13px; color: #1f2937; margin: 0; font-weight: 600;">
+                <?php echo htmlspecialchars($block->getData('POP_IN_ALL') ?? '0 B'); ?> / <?php echo htmlspecialchars($block->getData('POP_OUT_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+        
+        <!-- Other Traffic -->
+        <div class="card" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #666; margin: 0; font-weight: 500;">Other Traffic</h3>
+                    <p style="font-size: 12px; color: #999; margin: 3px 0 0 0;">In / Out</p>
+                </div>
+                <span style="font-size: 24px;">⚡</span>
+            </div>
+            <p style="font-size: 13px; color: #1f2937; margin: 0; font-weight: 600;">
+                <?php echo htmlspecialchars($block->getData('OTHER_IN_ALL') ?? '0 B'); ?> / <?php echo htmlspecialchars($block->getData('OTHER_OUT_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+        
+        <!-- Total Inbound -->
+        <div class="card" style="background: #f0f7ff; padding: 20px; border-radius: 8px; border: 2px solid #3b82f6; box-shadow: 0 1px 3px rgba(59,130,246,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #1e40af; margin: 0; font-weight: 500;">Total Inbound</h3>
+                    <p style="font-size: 12px; color: #3b82f6; margin: 3px 0 0 0;">All services</p>
+                </div>
+                <span style="font-size: 24px;">⬇️</span>
+            </div>
+            <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 700;">
+                <?php echo htmlspecialchars($block->getData('ALL_IN_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+        
+        <!-- Total Outbound -->
+        <div class="card" style="background: #fef3f2; padding: 20px; border-radius: 8px; border: 2px solid #ef4444; box-shadow: 0 1px 3px rgba(239,68,68,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div>
+                    <h3 style="font-size: 14px; color: #991b1b; margin: 0; font-weight: 500;">Total Outbound</h3>
+                    <p style="font-size: 12px; color: #ef4444; margin: 3px 0 0 0;">All services</p>
+                </div>
+                <span style="font-size: 24px;">⬆️</span>
+            </div>
+            <p style="font-size: 14px; color: #1f2937; margin: 0; font-weight: 700;">
+                <?php echo htmlspecialchars($block->getData('ALL_OUT_ALL') ?? '0 B'); ?>
+            </p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,176 @@
+<?php
+/**
+ * DataBuilder Admin Index Block
+ *
+ * Handles logic for the admin dashboard index page.
+ * Loads admin statistics and traffic data from iMSCP variables.
+ * 
+ * This block can be extended in themes/custom/ directory without modifying core.
+ */
+
+namespace DataBuilder\Block\Admin;
+
+use DataBuilder\Block\AbstractBlock;
+use DataBuilder\Block\BlockInterface;
+
+class IndexBlock extends AbstractBlock implements BlockInterface
+{
+    /**
+     * Statistics to display on admin dashboard
+     * @var array
+     */
+    protected $statistics = [];
+    
+    /**
+     * Traffic data
+     * @var array
+     */
+    protected $traffic = [];
+    
+    /**
+     * Initialize block data
+     * 
+     * Loads admin statistics from iMSCP and prepares data for template rendering.
+     * Note: iMSCP variables are passed in via the layout, not queried directly.
+     *
+     * @return void
+     */
+    protected function _init()
+    {
+        // Load statistics from iMSCP variables passed through layout
+        $this->loadStatistics();
+        
+        // Load traffic data
+        $this->loadTrafficData();
+        
+        // Set default template if not already set
+        if (!$this->hasTemplate()) {
+            $this->setTemplate('admin/index.phtml');
+        }
+    }
+    
+    /**
+     * Load administrative statistics
+     * 
+     * Statistics are retrieved from iMSCP template variables.
+     * These variables are set by iMSCP during page rendering.
+     *
+     * @return void
+     */
+    protected function loadStatistics()
+    {
+        // List of statistics to load from iMSCP
+        $statisticKeys = [
+            'admin_users' => 'ADMIN_USERS',
+            'reseller_users' => 'RESELLER_USERS', 
+            'normal_users' => 'NORMAL_USERS',
+            'domains' => 'DOMAINS',
+            'ftp_accounts' => 'FTP_ACCOUNTS',
+            'sql_databases' => 'SQL_DATABASES',
+            'sql_users' => 'SQL_USERS',
+            'mail_accounts' => 'MAIL_ACCOUNTS'
+        ];
+        
+        // Load each statistic from parent layout data
+        foreach ($statisticKeys as $key => $variable) {
+            // Try to get from layout data first, fall back to blank
+            $value = $this->getLayoutData($variable, '0');
+            
+            $this->statistics[$key] = [
+                'variable' => $variable,
+                'value' => $value,
+                'label_key' => 'TR_' . $variable  // iMSCP provides translated labels
+            ];
+        }
+        
+        // Assign to template
+        $this->assign('statistics', $this->statistics);
+    }
+    
+    /**
+     * Load server traffic data
+     * 
+     * Loads traffic percentage and warning message from iMSCP layout.
+     *
+     * @return void
+     */
+    protected function loadTrafficData()
+    {
+        // Load traffic information
+        $this->traffic = [
+            'percent' => $this->getLayoutData('TRAFFIC_PERCENT', '0'),
+            'percent_width' => $this->getLayoutData('TRAFFIC_PERCENT_WIDTH', '0%'),
+            'warning' => $this->getLayoutData('TRAFFIC_WARNING', ''),
+            'label' => 'TR_SERVER_TRAFFIC'  // iMSCP provides translation
+        ];
+        
+        // Assign to template
+        $this->assign('traffic', $this->traffic);
+    }
+    
+    /**
+     * Get data passed from parent layout
+     * 
+     * @param string $key Variable name (e.g., 'ADMIN_USERS')
+     * @param mixed $default Default value if not found
+     * @return mixed
+     */
+    protected function getLayoutData($key, $default = null)
+    {
+        // This would be populated by the LayoutManager with iMSCP variables
+        // For now, return default or fetch from registry
+        $layoutData = $this->getRegistry()->get('layout_data', []);
+        return isset($layoutData[$key]) ? $layoutData[$key] : $default;
+    }
+    
+    /**
+     * Get all statistics
+     * 
+     * @return array
+     */
+    public function getStatistics()
+    {
+        return $this->statistics;
+    }
+    
+    /**
+     * Get traffic data
+     * 
+     * @return array
+     */
+    public function getTraffic()
+    {
+        return $this->traffic;
+    }
+    
+    /**
+     * Get a single statistic by key
+     * 
+     * @param string $key Statistic key
+     * @return array|null
+     */
+    public function getStatistic($key)
+    {
+        return isset($this->statistics[$key]) ? $this->statistics[$key] : null;
+    }
+    
+    /**
+     * Get block name
+     * 
+     * @return string
+     */
+    public function getBlockName()
+    {
+        return 'AdminIndexBlock';
+    }
+    
+    /**
+     * Get block description
+     * 
+     * @return string
+     */
+    public function getDescription()
+    {
+        return 'Displays admin dashboard with statistics and traffic information';
+    }
+}

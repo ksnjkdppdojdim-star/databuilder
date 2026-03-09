@@ -1,0 +1,199 @@
+/* DataBuilder Theme Stylesheet */
+
+/* ─── Base Styles ──────────────────────────────────────────── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* ─── Login Page ────────────────────────────────────────────── */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-wrapper {
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.login-header .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.login-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.container {
+    width: 100%;
+}
+
+/* ─── Form Styles ──────────────────────────────────────────── */
+.login-form {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.form-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ─── Alert Styles ─────────────────────────────────────────── */
+.alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    color: #d32f2f;
+}
+
+/* ─── Footer ───────────────────────────────────────────────── */
+.login-footer {
+    color: white;
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* ─── Admin Dashboard ──────────────────────────────────────── */
+.sidebar {
+    background-color: #fff;
+    border-right: 1px solid #e0e0e0;
+}
+
+.header {
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1rem;
+}
+
+.content-wrapper {
+    padding: 1rem;
+}
+
+.message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.message.notice {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    color: #1976d2;
+}
+
+.message.warning {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff9800;
+    color: #f57c00;
+}
+
+.message.error {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+    color: #d32f2f;
+}
+
+.message.success {
+    background-color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    color: #388e3c;
+}

@@ -1,0 +1,33 @@
+<?php
+
+namespace DataBuilder\Core;
+
+class Registry
+{
+    private array $data = [];
+
+    public function set(string $key, $value): void
+    {
+        $this->data[$key] = $value;
+    }
+
+    public function get(string $key, $default = null)
+    {
+        return $this->data[$key] ?? $default;
+    }
+
+    public function has(string $key): bool
+    {
+        return isset($this->data[$key]);
+    }
+
+    public function delete(string $key): void
+    {
+        unset($this->data[$key]);
+    }
+
+    public function all(): array
+    {
+        return $this->data;
+    }
+}

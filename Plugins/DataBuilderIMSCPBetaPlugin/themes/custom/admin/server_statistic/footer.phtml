@@ -1,0 +1,72 @@
+<?php
+/**
+ * Server Statistic Page - Footer Template
+ * 
+ * @var $block DataBuilder\Block\ContainerBlock
+ */
+
+// Get system info from block data
+$os = $block->getData('os', 'Unknown');
+$kernel = $block->getData('kernel', 'Unknown');
+$hostname = $block->getData('hostname', 'localhost');
+$php_version = $block->getData('php_version', PHP_VERSION);
+?>
+<div class="page-footer">
+    <div class="system-info">
+        <span class="info-label">System:</span>
+        <span class="info-value"><?= $block->e($os) ?></span>
+        <span class="separator">|</span>
+        <span class="info-label">Kernel:</span>
+        <span class="info-value"><?= $block->e($kernel) ?></span>
+        <span class="separator">|</span>
+        <span class="info-label">Hostname:</span>
+        <span class="info-value"><?= $block->e($hostname) ?></span>
+        <span class="separator">|</span>
+        <span class="info-label">PHP:</span>
+        <span class="info-value"><?= $block->e($php_version) ?></span>
+    </div>
+    <div class="powered-by">
+        Powered by <a href="https://www.i-mscp.net/" target="_blank">i-MSCP</a> &amp; DataBuilder
+    </div>
+</div>
+
+<style>
+.page-footer {
+    padding: 20px;
+    margin-top: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.page-footer .system-info {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.page-footer .system-info .info-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.page-footer .system-info .separator {
+    margin: 0 8px;
+    color: #ccc;
+}
+
+.page-footer .powered-by {
+    font-size: 11px;
+    color: #999;
+}
+
+.page-footer .powered-by a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.page-footer .powered-by a:hover {
+    text-decoration: underline;
+}
+</style>
+

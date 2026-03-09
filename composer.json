@@ -1,0 +1,15 @@
+{
+    "name": "databuilder/databuilder",
+    "description": "Modular templating engine",
+    "type": "library",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "DataBuilder\\": "src/",
+            "DataBuilderDemo\\": "demo/src/"
+        }
+    },
+    "minimum-stability": "stable"
+}

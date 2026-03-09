@@ -1,0 +1,7 @@
+<route
+    method="GET"
+    path="/"
+    controller="DataBuilderDemo\Controller\HomeController"
+    action="index"
+    handle="homepage"
+/>

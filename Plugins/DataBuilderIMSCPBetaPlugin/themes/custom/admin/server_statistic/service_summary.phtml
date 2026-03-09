@@ -1,0 +1,57 @@
+<?php
+/**
+ * Server Statistic Page - Service Summary Template
+ * 
+ * @var $block DataBuilder\Block\ContainerBlock
+ */
+$web_in = $block->getData('WEB_IN_ALL', '0 B');
+$web_out = $block->getData('WEB_OUT_ALL', '0 B');
+$smtp_in = $block->getData('SMTP_IN_ALL', '0 B');
+$smtp_out = $block->getData('SMTP_OUT_ALL', '0 B');
+$pop_in = $block->getData('POP_IN_ALL', '0 B');
+$pop_out = $block->getData('POP_OUT_ALL', '0 B');
+$other_in = $block->getData('OTHER_IN_ALL', '0 B');
+$other_out = $block->getData('OTHER_OUT_ALL', '0 B');
+?>
+<div class="service-summary">
+    <div class="service-card web">
+        <div class="service-icon">🌐</div>
+        <div class="service-label">WEB</div>
+        <div class="service-values">
+            <span class="in"><?= $block->e($web_in) ?></span>
+            <span class="separator">/</span>
+            <span class="out"><?= $block->e($web_out) ?></span>
+        </div>
+    </div>
+    
+    <div class="service-card smtp">
+        <div class="service-icon">📧</div>
+        <div class="service-label">SMTP</div>
+        <div class="service-values">
+            <span class="in"><?= $block->e($smtp_in) ?></span>
+            <span class="separator">/</span>
+            <span class="out"><?= $block->e($smtp_out) ?></span>
+        </div>
+    </div>
+    
+    <div class="service-card pop">
+        <div class="service-icon">📥</div>
+        <div class="service-label">POP3/IMAP</div>
+        <div class="service-values">
+            <span class="in"><?= $block->e($pop_in) ?></span>
+            <span class="separator">/</span>
+            <span class="out"><?= $block->e($pop_out) ?></span>
+        </div>
+    </div>
+    
+    <div class="service-card other">
+        <div class="service-icon">⚡</div>
+        <div class="service-label">OTHER</div>
+        <div class="service-values">
+            <span class="in"><?= $block->e($other_in) ?></span>
+            <span class="separator">/</span>
+            <span class="out"><?= $block->e($other_out) ?></span>
+        </div>
+    </div>
+</div>
+

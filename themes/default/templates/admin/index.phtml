@@ -1,0 +1,456 @@
+<?php
+/**
+ * DataBuilder Admin Index Template
+ *
+ * Renders the admin dashboard with statistics cards and traffic information.
+ * This template can be completely overridden in themes/custom/templates/admin/index.phtml
+ * 
+ * Variables available:
+ * - $statistics: Array of admin statistics with icons and values
+ * - $traffic: Array with traffic percentage and warning
+ * - $block: The IndexBlock instance for accessing block methods
+ * - $assetManager: The AssetManager instance for injecting assets
+ *
+ * @var \DataBuilder\Block\Admin\IndexBlock $block
+ * @var \DataBuilder\Asset\AssetManager $assetManager
+ */
+
+// Ensure asset manager is available
+$assetManager = $assetManager ?? new \DataBuilder\Asset\AssetManager(
+    $this->getRegistry()->get('config', [])
+);
+
+// Add default DataBuilder assets
+$assetManager->addDefaultAdminAssets();
+
+// Inject CSS in the document head (can be captured by wrapper layout)
+if (method_exists($this, 'injectAssets')) {
+    $this->injectAssets($assetManager);
+}
+?>
+
+<div class="databuilder-admin-index" data-theme="databuilder" data-page="admin_index">
+    
+    <!-- Administrative Dashboard Statistics Section -->
+    <section class="db-section db-statistics" id="admin-statistics">
+        <div class="statistics-grid">
+            
+            <?php foreach ($this->block->getStatistics() as $stat): ?>
+                <!-- Stat Card -->
+                <div class="stat-card stat-card--<?php echo $this->escapeHtml($stat['variable']); ?>" 
+                     data-stat="<?php echo $this->escapeHtml($stat['variable']); ?>">
+                    
+                    <div class="stat-card__icon">
+                        <!-- Icon will depend on stat type - customizable in data XML -->
+                    </div>
+                    
+                    <div class="stat-card__content">
+                        <div class="stat-card__value">
+                            <?php echo $this->escapeHtml($stat['value']); ?>
+                        </div>
+                        <div class="stat-card__label">
+                            <!-- Translation key will be replaced by iMSCP -->
+                            {<?php echo $stat['label_key']; ?>}
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+            
+        </div>
+    </section>
+
+    <!-- Server Traffic Section -->
+    <section class="db-section db-traffic" id="admin-traffic">
+        <div class="traffic-container">
+            <div class="traffic-header">
+                <h3 class="traffic-title">
+                    <span class="material-symbols-outlined">cloud_download</span>
+                    {<?php echo $this->block->getTraffic()['label']; ?>}
+                </h3>
+                <div class="traffic-warning">
+                    <?php echo $this->escapeHtml($this->block->getTraffic()['warning']); ?>
+                </div>
+            </div>
+            
+            <div class="traffic-bar-container">
+                <div class="traffic-bar">
+                    <div class="traffic-progress" 
+                         style="width: <?php echo $this->escapeHtml($this->block->getTraffic()['percent_width']); ?>">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="traffic-percentage">
+                <?php echo $this->escapeHtml($this->block->getTraffic()['percent']); ?>%
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+/* ============================================================================
+   DataBuilder Admin Index - Default Styling
+   
+   This CSS can be completely overridden in custom/ folder
+   Variables and design are fully customizable by editing this file
+   or themes/default/css/admin-index.css
+   ============================================================================ */
+
+:root {
+    /* Color scheme - easily customizable */
+    --db-color-primary: #3b82f6;
+    --db-color-secondary: #64748b;
+    --db-color-bg-light: #f8fafc;
+    --db-color-bg-dark: #1a222f;
+    --db-color-border-light: #e2e8f0;
+    --db-color-border-dark: #334155;
+    
+    /* Spacing - adjust for different densities */
+    --db-spacing-xs: 6px;
+    --db-spacing-sm: 12px;
+    --db-spacing-md: 16px;
+    --db-spacing-lg: 24px;
+    --db-spacing-xl: 32px;
+    
+    /* Transitions - control animation speed */
+    --db-transition-fast: 150ms;
+    --db-transition-normal: 300ms;
+    --db-transition-slow: 500ms;
+    
+    /* Border radius - for consistency */
+    --db-radius-sm: 6px;
+    --db-radius-md: 12px;
+    --db-radius-lg: 16px;
+}
+
+.dark {
+    --db-color-bg-light: #0f172a;
+    --db-color-bg-dark: #1e293b;
+    --db-color-border-light: #334155;
+    --db-color-border-dark: #475569;
+}
+
+/* ============================================================================
+   Admin Index Container
+   ============================================================================ */
+
+.databuilder-admin-index {
+    display: flex;
+    flex-direction: column;
+    gap: var(--db-spacing-lg);
+    padding: var(--db-spacing-lg);
+}
+
+/* ============================================================================
+   Common Section Styles
+   ============================================================================ */
+
+.db-section {
+    display: block;
+}
+
+.db-statistics .statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--db-spacing-md);
+    margin: 0;
+}
+
+/* ============================================================================
+   Statistics Card Component
+   ============================================================================ */
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-md);
+    padding: var(--db-spacing-md);
+    background: white;
+    border: 1px solid var(--db-color-border-light);
+    border-radius: var(--db-radius-md);
+    transition: all var(--db-transition-normal) ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dark .stat-card {
+    background: var(--db-color-bg-dark);
+    border-color: var(--db-color-border-dark);
+}
+
+.stat-card:hover {
+    border-color: var(--db-color-primary);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+.stat-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--db-radius-md);
+    flex-shrink: 0;
+    font-size: 24px;
+}
+
+.stat-card--ADMIN_USERS .stat-card__icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.stat-card--RESELLER_USERS .stat-card__icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.stat-card--NORMAL_USERS .stat-card__icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.stat-card--DOMAINS .stat-card__icon {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.stat-card--FTP_ACCOUNTS .stat-card__icon {
+    background: rgba(6, 182, 212, 0.1);
+    color: #06b6d4;
+}
+
+.stat-card--SQL_DATABASES .stat-card__icon {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.stat-card--SQL_USERS .stat-card__icon {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.stat-card--MAIL_ACCOUNTS .stat-card__icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.stat-card__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-card__value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1;
+    margin-bottom: var(--db-spacing-xs);
+}
+
+.dark .stat-card__value {
+    color: #f1f5f9;
+}
+
+.stat-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dark .stat-card__label {
+    color: #cbd5e1;
+}
+
+/* ============================================================================
+   Traffic Section
+   ============================================================================ */
+
+.db-traffic {
+    background: white;
+    border: 1px solid var(--db-color-border-light);
+    border-radius: var(--db-radius-md);
+    padding: var(--db-spacing-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dark .db-traffic {
+    background: var(--db-color-bg-dark);
+    border-color: var(--db-color-border-dark);
+}
+
+.traffic-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--db-spacing-md);
+}
+
+.traffic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--db-spacing-md);
+}
+
+.traffic-title {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-sm);
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.dark .traffic-title {
+    color: #f1f5f9;
+}
+
+.traffic-title .material-symbols-outlined {
+    font-size: 24px;
+    color: #06b6d4;
+}
+
+.traffic-warning {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin: 0;
+}
+
+.dark .traffic-warning {
+    color: #cbd5e1;
+}
+
+.traffic-bar-container {
+    display: flex;
+    align-items: center;
+    gap: var(--db-spacing-sm);
+}
+
+.traffic-bar {
+    flex: 1;
+    height: 24px;
+    background: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.dark .traffic-bar {
+    background: #334155;
+}
+
+.traffic-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    border-radius: 12px;
+    transition: width var(--db-transition-slow) ease;
+}
+
+.traffic-percentage {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--db-color-primary);
+    text-align: right;
+    min-width: 60px;
+}
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .databuilder-admin-index {
+        padding: var(--db-spacing-md);
+    }
+    
+    .statistics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    }
+    
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--db-spacing-sm);
+        gap: var(--db-spacing-sm);
+    }
+    
+    .stat-card__value {
+        font-size: 22px;
+    }
+    
+    .traffic-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+    .stat-card {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* ============================================================================
+   Animation Effects (optional)
+   ============================================================================ */
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card {
+    animation: slideUp var(--db-transition-normal) ease;
+}
+
+.stat-card:nth-child(n) { animation-delay: calc(var(--db-transition-fast) * var(--index)); }
+</style>
+
+<script>
+/**
+ * DataBuilder Admin Index - Interactivity
+ * 
+ * This script is optional and can be completely overridden
+ * in themes/custom/templates/admin/index.phtml
+ */
+
+(function() {
+    'use strict';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeStatCards();
+    });
+    
+    /**
+     * Initialize stat card interactions
+     */
+    function initializeStatCards() {
+        const cards = document.querySelectorAll('[data-stat]');
+        
+        cards.forEach((card) => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    }
+})();
+</script>

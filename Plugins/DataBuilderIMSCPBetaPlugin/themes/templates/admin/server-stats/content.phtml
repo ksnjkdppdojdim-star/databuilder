@@ -1,0 +1,11 @@
+<?php
+/**
+ * Main content area with statistics blocks
+ */
+?>
+<div class="stats-container" style="max-width: 1200px; margin: 0 auto;">
+    <div class="stats-grid" style="display: grid; grid-template-columns: 1fr; gap: 30px;">
+        <?php echo $block->getChild('stats_overview')->render(); ?>
+        <?php echo $block->getChild('stats_details')->render(); ?>
+    </div>
+</div>

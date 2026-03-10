@@ -23,6 +23,15 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
      * Plugin name
      */
     const PLUGIN_NAME = 'DataBuilderIMSCPBetaPlugin';
+
+    /** @var array|null Cached DataBuilder config — rebuilt once per process */
+    private $cachedConfig = null;
+
+    /** @var \ReflectionProperty|null Cached reflection on iMSCP TemplateEngine::$rootDir */
+    private static $rootDirReflection = null;
+
+    /** @var \ReflectionProperty|null Cached reflection on iMSCP TemplateEngine::$namespace */
+    private static $namespaceReflection = null;
     
     /**
      * @inheritDoc
@@ -181,11 +190,13 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             return;
         }
 
-        // Use Reflection to read the protected $rootDir
-        $reflection    = new \ReflectionClass($context);
-        $rootDirProp   = $reflection->getProperty('rootDir');
-        $rootDirProp->setAccessible(true);
-        $rootDir = $rootDirProp->getValue($context);
+        // Use cached Reflection to read the protected $rootDir (reflection object is reused)
+        if (self::$rootDirReflection === null) {
+            $reflection = new \ReflectionClass($context);
+            self::$rootDirReflection = $reflection->getProperty('rootDir');
+            self::$rootDirReflection->setAccessible(true);
+        }
+        $rootDir = self::$rootDirReflection->getValue($context);
 
         // Extract relative path and resolve a possible Magento-style override dir
         $relativePath = str_replace([$rootDir . '/', $rootDir . '\\'], '', $templatePath);
@@ -229,20 +240,14 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
         // Use Closure::bind — the same technique iMSCP's own Layout.php uses.
         $imscpTplData = [];
         try {
-            $getPropertyFn = \Closure::bind(
-                function ($prop) { return $this->$prop; },
-                $tpl,
-                get_class($tpl)
-            );
-            $imscpTplData = $getPropertyFn('namespace') ?: [];
-            $statsDay = isset($imscpTplData['SERVER_STATS_DAY']) ? strlen((string)$imscpTplData['SERVER_STATS_DAY']) : -1;
-            error_log('DataBuilder[scriptEnd]: namespace has ' . count($imscpTplData) . ' keys'
-                . ', SMTP_IN_ALL=' . ($imscpTplData['SMTP_IN_ALL'] ?? 'NOT_SET')
-                . ', DAY_LIST=' . (isset($imscpTplData['DAY_LIST']) ? strlen($imscpTplData['DAY_LIST']) . 'chars' : 'NOT_SET')
-                . ', SERVER_STATS_DAY=' . ($statsDay >= 0 ? $statsDay . 'chars' : 'NOT_SET')
-            );
+            if (self::$namespaceReflection === null) {
+                $refl = new \ReflectionClass($tpl);
+                self::$namespaceReflection = $refl->getProperty('namespace');
+                self::$namespaceReflection->setAccessible(true);
+            }
+            $imscpTplData = self::$namespaceReflection->getValue($tpl) ?: [];
         } catch (\Throwable $e) {
-            error_log('DataBuilder[scriptEnd]: could not read namespace: ' . $e->getMessage());
+            // silent — returns empty array, controller will use defaults
         }
 
         $html = $this->executeDataBuilderController($script, $tpl, $imscpTplData);
@@ -250,7 +255,6 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             return;
         }
 
-        error_log('DataBuilder[scriptEnd]: injecting ' . strlen($html) . ' bytes for ' . $script);
         $tpl->assign('LAYOUT_CONTENT', $html);
     }
 
@@ -306,8 +310,11 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
         }
         
         try {
-            // Initialize DataBuilder components
-            $config = $this->getDataBuilderConfig($context);
+            // Initialize DataBuilder components (config cached for process lifetime)
+            if ($this->cachedConfig === null) {
+                $this->cachedConfig = $this->getDataBuilderConfig($context);
+            }
+            $config = $this->cachedConfig;
             
             $registry = new \DataBuilder\Core\Registry();
             $registry->set('config', $config);
@@ -367,13 +374,23 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
      */
     private function loadPagesConfig(): array
     {
+        // 1. In-process static cache (fastest — zero cost after first call in same worker)
         static $cache = null;
         if ($cache !== null) {
             return $cache;
         }
 
-        // Each scope has its own file: config/admin/pages.xml, config/reseller/pages.xml, ...
-        // The directory name IS the scope — no attribute needed inside the XML.
+        // 2. APCu cross-process cache (shared across all PHP-FPM workers)
+        //    Key includes plugin dir mtime so cache auto-invalidates after a deploy.
+        $apcuKey = 'db_pages_cfg_' . filemtime(__DIR__ . '/config');
+        if (function_exists('apcu_fetch')) {
+            $hit = apcu_fetch($apcuKey, $success);
+            if ($success) {
+                return $cache = $hit;
+            }
+        }
+
+        // 3. Cold parse — runs once per worker after deploy
         $result = [];
         foreach (['admin', 'reseller', 'client'] as $scope) {
             $file = __DIR__ . '/config/' . $scope . '/pages.xml';
@@ -382,7 +399,6 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             }
             $xml = @simplexml_load_file($file);
             if ($xml === false) {
-                error_log('DataBuilder: failed to parse config/' . $scope . '/pages.xml');
                 continue;
             }
             foreach ($xml->page as $page) {
@@ -392,6 +408,11 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
                     $result[$scope][$name] = $ctrl;
                 }
             }
+        }
+
+        // Store in APCu for 1 hour (TTL irrelevant — key changes on deploy)
+        if (function_exists('apcu_store')) {
+            apcu_store($apcuKey, $result, 3600);
         }
 
         return $cache = $result;
@@ -439,7 +460,7 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             'themes_path'      => __DIR__ . '/themes',
             'modules_path'     => __DIR__ . '/modules',
             'cache_path'       => $imscpRoot . '/gui/data/cache/databuilder-templates',
-            'cache_enable'     => false,
+            'cache_enable'     => true,
         ];
     }
     

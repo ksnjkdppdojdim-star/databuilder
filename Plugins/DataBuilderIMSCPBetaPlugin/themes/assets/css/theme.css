@@ -116,3 +116,54 @@ footer.footer{background:var(--db-ft-bg);border-top:1px solid var(--db-ft-br);pa
 .alert{padding:10px 14px;border-radius:5px;margin-bottom:14px;font-size:13px;border-left:3px solid transparent}
 .alert-error{background:var(--db-n-eb);border-color:var(--db-n-eb2);color:var(--db-n-et)}
 .login-footer{color:rgba(255,255,255,.5);text-align:center;font-size:12px;margin-top:16px}
+
+/* ── Layout Page (Admin / Profile / Layout) ───────────────────────── */
+.db-layout-page{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.db-layout-page .page-header{grid-column:1/-1}
+.db-card{background:var(--db-card);border:1px solid var(--db-cbr);border-radius:var(--db-cr);box-shadow:var(--db-cs);overflow:hidden}
+.db-card-header{padding:14px 20px;border-bottom:1px solid var(--db-cbr);background:var(--db-th-bg)}
+.db-card-header h2{font-size:13px;font-weight:700;color:var(--db-t);text-transform:uppercase;letter-spacing:.05em}
+.db-card-body{padding:20px}
+
+/* ── Form components ──────────────────────────────────────────────── */
+.db-form{width:100%}
+.db-form-row{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--db-cbr)}
+.db-form-row:last-of-type{border-bottom:none}
+.db-form-row label{font-size:13px;font-weight:600;color:var(--db-tm)}
+.db-form-row select,.db-form-row input[type=text],.db-form-row input[type=email]{padding:7px 10px;border-radius:5px;border:1px solid var(--db-cbr);background:#fff;font-size:13px;color:var(--db-t);outline:none;transition:border-color .15s;width:100%;max-width:280px}
+.db-form-row select:focus,.db-form-row input:focus{border-color:var(--db-p);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.db-form-row--radio{align-items:flex-start;padding:12px 0}
+.db-form-actions{padding-top:16px;display:flex;gap:10px;justify-content:flex-end}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.db-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:5px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,box-shadow .15s;line-height:1.4}
+.db-btn-primary{background:var(--db-p);color:#fff}
+.db-btn-primary:hover{background:var(--db-ph);box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.db-btn-danger{background:#ef4444;color:#fff}
+.db-btn-danger:hover{background:#dc2626;box-shadow:0 2px 8px rgba(239,68,68,.3)}
+.db-btn-secondary{background:var(--db-th-bg);color:var(--db-t);border:1px solid var(--db-cbr)}
+.db-btn-secondary:hover{background:var(--db-cbr)}
+.db-btn-sm{padding:5px 12px;font-size:12px}
+
+/* ── Radio group ──────────────────────────────────────────────────── */
+.db-radio-group{display:flex;flex-direction:column;gap:8px}
+.db-radio-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--db-t);cursor:pointer;padding:6px 10px;border-radius:5px;transition:background .1s}
+.db-radio-label:hover{background:var(--db-pl)}
+.db-radio-label input[type=radio]{accent-color:var(--db-p);width:15px;height:15px;cursor:pointer;flex-shrink:0}
+
+/* ── Logo manager ─────────────────────────────────────────────────── */
+.db-logo-preview{display:flex;align-items:center;gap:16px;padding:14px;background:var(--db-th-bg);border:1px solid var(--db-cbr);border-radius:var(--db-cr);margin-bottom:16px}
+.db-logo-img{max-height:52px;max-width:180px;object-fit:contain;border-radius:4px}
+.db-logo-remove-form{margin:0}
+.db-logo-upload-form .db-form-row{padding-top:0;border-bottom:none}
+.db-file-label{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px dashed var(--db-cbr);border-radius:5px;cursor:pointer;font-size:13px;color:var(--db-tm);transition:border-color .15s,background .15s;background:#fff}
+.db-file-label:hover{border-color:var(--db-p);background:var(--db-pl);color:var(--db-p)}
+.db-file-label input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.db-file-icon{font-size:15px;line-height:1}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .db-layout-page{grid-template-columns:1fr}
+  .db-form-row{grid-template-columns:1fr;gap:5px}
+  .db-form-row select,.db-form-row input[type=text]{max-width:100%}
+}

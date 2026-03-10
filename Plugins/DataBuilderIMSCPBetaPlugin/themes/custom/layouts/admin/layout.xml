@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Admin > Profile > Layout — DataBuilder
+         Templates  : themes/custom/admin/layout/*.phtml
+         Controller : DataBuilder\Controller\Admin\LayoutController
+    -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock"
+           htmlTag="div" htmlClass="db-layout-page">
+
+        <block name="header"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/layout/header.phtml"/>
+
+        <block name="theme_selector"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/layout/theme_selector.phtml"/>
+
+        <block name="logo_manager"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/layout/logo_manager.phtml"/>
+
+        <block name="other_settings"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/layout/other_settings.phtml"/>
+
+    </block>
+</layout>

@@ -20,6 +20,9 @@
     <page name="server_statistic"
           controller="DataBuilder\Controller\Admin\ServerStatisticController"/>
 
+    <page name="layout"
+          controller="DataBuilder\Controller\Admin\LayoutController"/>
+
     <!-- À activer quand le controller sera créé :
     <page name="admin_log"
           controller="DataBuilder\Controller\Admin\AdminLogController"/>

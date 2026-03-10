@@ -11,10 +11,10 @@ use DataBuilder\Block\BlockInterface;
  */
 class TemplateEngine
 {
-    private TemplateResolver $resolver;
-    private TemplateCache $cache;
-    private bool $cacheEnabled;
-    private bool $debug;
+    private $resolver;
+    private $cache;
+    private $cacheEnabled;
+    private $debug;
 
     public function __construct(array $config)
     {

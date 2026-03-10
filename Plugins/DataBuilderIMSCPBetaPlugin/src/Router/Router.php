@@ -16,8 +16,8 @@ namespace DataBuilder\Router;
 class Router implements RouterInterface
 {
     /** @var array<array{method: string, path: string, regex: string, params: string[], controller: string, action: string, handle: string}> */
-    private array $routes = [];
-    private string $configPath;
+    private $routes = [];
+    private $configPath;
 
     public function __construct(array $config)
     {

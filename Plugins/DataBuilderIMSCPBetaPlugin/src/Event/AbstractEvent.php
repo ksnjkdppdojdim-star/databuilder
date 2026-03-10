@@ -5,8 +5,8 @@ namespace DataBuilder\Event;
 
 abstract class AbstractEvent implements EventInterface
 {
-    private bool $propagationStopped = false;
-    private string $name;
+    private $propagationStopped = false;
+    private $name;
 
     public function __construct(string $name)
     {

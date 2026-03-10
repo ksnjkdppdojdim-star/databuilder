@@ -9,9 +9,9 @@ namespace DataBuilder\Theme;
  */
 class ThemeManager
 {
-    private ThemeFallback $fallback;
-    private string $activeTheme;
-    private ?array $chain = null; // Cache de la chaîne résolue
+    private $fallback;
+    private $activeTheme;
+    private $chain = null; // Cache de la chaîne résolue
 
     public function __construct(array $config)
     {

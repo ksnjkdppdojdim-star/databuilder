@@ -11,9 +11,9 @@ namespace DataBuilder\Block;
  */
 class ContainerBlock extends AbstractBlock
 {
-    private string $htmlTag   = 'div';
-    private string $htmlClass = '';
-    private string $htmlId    = '';
+    private $htmlTag   = 'div';
+    private $htmlClass = '';
+    private $htmlId    = '';
 
     public function __construct(string $name, string $htmlTag = 'div', string $htmlClass = '', string $htmlId = '')
     {

@@ -18,22 +18,25 @@ $tr_all_in = $block->getData('TR_ALL_IN', 'Total In');
 $tr_all_out = $block->getData('TR_ALL_OUT', 'Total Out');
 $tr_all = $block->getData('TR_ALL', 'Total');
 
-// Get monthly stats data
-$server_stats_by_month = $block->getData('server_stats_by_month', []);
+// Pre-rendered <tr> rows provided by iMSCP (already formatted, no DB access needed).
+$server_stats_rows = $block->getData('SERVER_STATS_ROWS', '');
 
-$web_in_all = $block->getData('WEB_IN_ALL', '0 B');
-$web_out_all = $block->getData('WEB_OUT_ALL', '0 B');
-$smtp_in_all = $block->getData('SMTP_IN_ALL', '0 B');
+// Debug log — helps diagnose missing rows on the server
+error_log('DataBuilder[stats_table]: SERVER_STATS_ROWS len=' . strlen((string)$server_stats_rows)
+    . ' WEB_IN_ALL=' . $block->getData('WEB_IN_ALL', 'missing'));
+
+$web_in_all   = $block->getData('WEB_IN_ALL',   '0 B');
+$web_out_all  = $block->getData('WEB_OUT_ALL',  '0 B');
+$smtp_in_all  = $block->getData('SMTP_IN_ALL',  '0 B');
 $smtp_out_all = $block->getData('SMTP_OUT_ALL', '0 B');
-$pop_in_all = $block->getData('POP_IN_ALL', '0 B');
-$pop_out_all = $block->getData('POP_OUT_ALL', '0 B');
-$other_in_all = $block->getData('OTHER_IN_ALL', '0 B');
+$pop_in_all   = $block->getData('POP_IN_ALL',   '0 B');
+$pop_out_all  = $block->getData('POP_OUT_ALL',  '0 B');
+$other_in_all  = $block->getData('OTHER_IN_ALL',  '0 B');
 $other_out_all = $block->getData('OTHER_OUT_ALL', '0 B');
-$all_in_all = $block->getData('ALL_IN_ALL', '0 B');
-$all_out_all = $block->getData('ALL_OUT_ALL', '0 B');
-$all_all = $block->getData('ALL_ALL', '0 B');
+$all_in_all   = $block->getData('ALL_IN_ALL',   '0 B');
+$all_out_all  = $block->getData('ALL_OUT_ALL',  '0 B');
+$all_all      = $block->getData('ALL_ALL',      '0 B');
 ?>
-<?php if (!empty($server_stats_by_month)): ?>
 <div class="stats-table-container">
     <h3><?= $block->e($block->getData('TR_MONTHLY_STATS', 'Monthly Statistics')) ?></h3>
     <table class="stats-table monthly">
@@ -54,22 +57,11 @@ $all_all = $block->getData('ALL_ALL', '0 B');
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($server_stats_by_month as $stat): ?>
-            <tr>
-                <td><?= $block->e($stat['date']) ?></td>
-                <td><?= $block->e($stat['web_in']) ?></td>
-                <td><?= $block->e($stat['web_out']) ?></td>
-                <td><?= $block->e($stat['smtp_in']) ?></td>
-                <td><?= $block->e($stat['smtp_out']) ?></td>
-                <td><?= $block->e($stat['pop_in']) ?></td>
-                <td><?= $block->e($stat['pop_out']) ?></td>
-                <td><?= $block->e($stat['other_in']) ?></td>
-                <td><?= $block->e($stat['other_out']) ?></td>
-                <td><?= $block->e($stat['all_in']) ?></td>
-                <td><?= $block->e($stat['all_out']) ?></td>
-                <td><?= $block->e($stat['total']) ?></td>
-            </tr>
-            <?php endforeach; ?>
+            <?php if (!empty($server_stats_rows)): ?>
+            <?= $server_stats_rows /* pre-rendered HTML from iMSCP parse() loops */ ?>
+            <?php else: ?>
+            <tr><td colspan="12" style="text-align:center;padding:12px;color:#666;"><!-- DB-DBG:ROWS_EMPTY --></td></tr>
+            <?php endif; ?>
         </tbody>
         <tfoot>
             <tr class="totals">
@@ -89,5 +81,4 @@ $all_all = $block->getData('ALL_ALL', '0 B');
         </tfoot>
     </table>
 </div>
-<?php endif; ?>
 

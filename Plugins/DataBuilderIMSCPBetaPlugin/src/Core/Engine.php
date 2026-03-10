@@ -18,20 +18,20 @@ use DataBuilder\Module\ModuleLoader;
 
 class Engine
 {
-    private static ?Engine $instance = null;
-    private array $config = [];
-    private Config $config_obj;
-    private Registry $registry;
-    private LayoutManager $layoutManager;
-    private TemplateEngine $templateEngine;
-    private Router $router;
+    private static $instance = null;
+    private $config = [];
+    private $config_obj;
+    private $registry;
+    private $layoutManager;
+    private $templateEngine;
+    private $router;
 
-    private ThemeManager    $themeManager;
-    private CacheManager    $cacheManager;
-    private EventDispatcher $eventDispatcher;
+    private $themeManager;
+    private $cacheManager;
+    private $eventDispatcher;
 
-    private TenantManager $tenantManager;
-    private ModuleLoader  $moduleLoader;
+    private $tenantManager;
+    private $moduleLoader;
 
     private function __construct(array $config)
     {
@@ -76,7 +76,7 @@ class Engine
         // ✅ Résolution forcée des paths relatifs (fix Windows + Linux)
         foreach (['themes_path', 'modules_path', 'cache_path', 'config_path'] as $key) {
             $value = $this->config[$key];
-            if (!str_starts_with($value, '/') && !str_contains($value, ':')) {
+            if (strpos($value, '/') !== 0 && strpos($value, ':') === false) {
                 $this->config[$key] = $this->config['base_path'] . DIRECTORY_SEPARATOR . ltrim($value, '/\\');
             } else {
                 // ✅ Normalise les séparateurs même pour les paths déjà absolus

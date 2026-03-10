@@ -15,15 +15,23 @@ use DataBuilder\Core\Registry;
  */
 class FrontController
 {
-    private BlockFactory $blockFactory;
+    private $blockFactory;
+    private $router;
+    private $layoutManager;
+    private $templateEngine;
+    private $registry;
 
     public function __construct(
-        private Router         $router,
-        private LayoutManager  $layoutManager,
-        private TemplateEngine $templateEngine,
-        private Registry       $registry
+        Router         $router,
+        LayoutManager  $layoutManager,
+        TemplateEngine $templateEngine,
+        Registry       $registry
     ) {
-        $this->blockFactory = new BlockFactory($this->templateEngine);
+        $this->router         = $router;
+        $this->layoutManager  = $layoutManager;
+        $this->templateEngine = $templateEngine;
+        $this->registry       = $registry;
+        $this->blockFactory   = new BlockFactory($this->templateEngine);
     }
 
     public function dispatch(string $uri): void

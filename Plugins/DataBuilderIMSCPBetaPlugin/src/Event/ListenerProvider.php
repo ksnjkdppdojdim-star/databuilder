@@ -9,7 +9,7 @@ namespace DataBuilder\Event;
 class ListenerProvider
 {
     /** @var array<string, array<array{callable, int}>> */
-    private array $listeners = [];
+    private $listeners = [];
 
     /**
      * Enregistre un listener pour un événement.
@@ -23,7 +23,7 @@ class ListenerProvider
         $this->listeners[$eventName][] = [$listener, $priority];
 
         // Tri par priorité décroissante
-        usort($this->listeners[$eventName], fn($a, $b) => $b[1] <=> $a[1]);
+        usort($this->listeners[$eventName], function ($a, $b) { return $b[1] <=> $a[1]; });
     }
 
     /**
@@ -47,7 +47,7 @@ class ListenerProvider
 
         $this->listeners[$eventName] = array_filter(
             $this->listeners[$eventName],
-            fn($entry) => $entry[0] !== $listener
+            function ($entry) use ($listener) { return $entry[0] !== $listener; }
         );
     }
 }

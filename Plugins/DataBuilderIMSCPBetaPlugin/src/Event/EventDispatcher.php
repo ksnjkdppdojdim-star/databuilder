@@ -14,7 +14,7 @@ namespace DataBuilder\Event;
  */
 class EventDispatcher
 {
-    private ListenerProvider $provider;
+    private $provider;
 
     public function __construct(?ListenerProvider $provider = null)
     {

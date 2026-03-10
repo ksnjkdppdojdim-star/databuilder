@@ -4,7 +4,7 @@ namespace DataBuilder\Core;
 
 class Registry
 {
-    private array $data = [];
+    private $data = [];
 
     public function set(string $key, $value): void
     {

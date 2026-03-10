@@ -13,9 +13,9 @@ namespace DataBuilder\Module;
  */
 class ModuleLoader
 {
-    private array $modules = [];
+    private $modules = [];
 
-    private array $config;
+    private $config;
 
     public function __construct(array $config)
     {

@@ -10,11 +10,11 @@ use DataBuilder\Router\Route;
 
 abstract class AbstractController
 {
-    protected Route $route;
-    protected Registry $registry;
-    protected LayoutManager $layoutManager;
-    protected BlockFactory $blockFactory;
-    protected TemplateEngine $templateEngine;
+    protected $route;
+    protected $registry;
+    protected $layoutManager;
+    protected $blockFactory;
+    protected $templateEngine;
 
     public function __construct(
         Route          $route,

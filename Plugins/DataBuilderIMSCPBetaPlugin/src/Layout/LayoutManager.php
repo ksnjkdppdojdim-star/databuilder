@@ -16,11 +16,11 @@ use DataBuilder\Core\Registry;
  */
 class LayoutManager
 {
-    private array $config;
-    private Registry $registry;
-    private XmlParser $parser;
-    private LayoutMerger $merger;
-    private array $loadedLayouts = [];
+    private $config;
+    private $registry;
+    private $parser;
+    private $merger;
+    private $loadedLayouts = [];
 
     public function __construct(array $config, Registry $registry)
     {
@@ -46,7 +46,8 @@ class LayoutManager
             throw new \RuntimeException("No layout files found for handle: {$handle}");
         }
 
-        $parsed = array_map(fn($file) => $this->parser->parseFile($file), $files);
+        $parser = $this->parser;
+        $parsed = array_map(function ($file) use ($parser) { return $parser->parseFile($file); }, $files);
         $merged = $this->merger->mergeAll($parsed);
 
         $this->loadedLayouts[$handle] = $merged;

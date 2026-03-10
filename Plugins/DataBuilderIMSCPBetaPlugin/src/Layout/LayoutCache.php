@@ -10,12 +10,14 @@ use DataBuilder\Cache\CacheManager;
  */
 class LayoutCache
 {
-    private string $cacheDir;
+    private $cacheDir;
+    private $cacheManager;
 
     public function __construct(
-        private CacheManager $cacheManager,
+        CacheManager $cacheManager,
         string $cachePath
     ) {
+        $this->cacheManager = $cacheManager;
         $this->cacheDir = $cachePath . '/layouts';
         if (!is_dir($this->cacheDir)) {
             mkdir($this->cacheDir, 0755, true);

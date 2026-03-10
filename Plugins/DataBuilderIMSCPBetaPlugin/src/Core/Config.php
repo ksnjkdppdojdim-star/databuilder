@@ -9,9 +9,9 @@ namespace DataBuilder\Core;
  */
 class Config
 {
-    private array $data = [];
-    private bool $loaded = false;
-    private string $configPath;
+    private $data = [];
+    private $loaded = false;
+    private $configPath;
 
     public function __construct(string $configPath)
     {
@@ -42,7 +42,7 @@ class Config
         return $this->data[$key] ?? $default;
     }
 
-    public function set(string $key, mixed $value): void
+    public function set(string $key, $value): void
     {
         $this->data[$key] = $value;
     }
@@ -92,7 +92,7 @@ class Config
         if ($value === 'true')  return true;
         if ($value === 'false') return false;
         if ($value === 'null')  return null;
-        if (is_numeric($value)) return str_contains($value, '.') ? (float)$value : (int)$value;
+        if (is_numeric($value)) return (strpos($value, '.') !== false) ? (float)$value : (int)$value;
         return $value;
     }
 }

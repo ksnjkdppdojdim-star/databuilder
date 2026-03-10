@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Admin > Server Statistics — Layout DataBuilder
+         Templates  : themes/custom/admin/server_statistic/*.phtml
+         Controller : DataBuilder\Controller\Admin\ServerStatisticController
+    -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock"
+           htmlTag="div" htmlClass="databuilder-server-stats">
+
+        <block name="header"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/server_statistic/header.phtml"/>
+
+        <block name="filter_bar"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/server_statistic/filter_bar.phtml"/>
+
+        <block name="content"
+               class="DataBuilder\Block\ContainerBlock"
+               htmlTag="div" htmlClass="content">
+
+            <block name="service_summary"
+                   class="DataBuilder\Block\ContainerBlock"
+                   template="admin/server_statistic/service_summary.phtml"/>
+
+            <block name="total_traffic"
+                   class="DataBuilder\Block\ContainerBlock"
+                   template="admin/server_statistic/total_traffic.phtml"/>
+
+            <block name="stats_table"
+                   class="DataBuilder\Block\ContainerBlock"
+                   template="admin/server_statistic/stats_table.phtml"/>
+
+        </block>
+
+        <block name="footer"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/server_statistic/footer.phtml"/>
+
+    </block>
+</layout>

@@ -15,8 +15,8 @@ use DataBuilder\Block\BlockInterface;
  */
 class BlockEvent extends AbstractEvent
 {
-    private string $html = '';
-    private BlockInterface $block;
+    private $html = '';
+    private $block;
 
     public function __construct(string $name, BlockInterface $block)
     {

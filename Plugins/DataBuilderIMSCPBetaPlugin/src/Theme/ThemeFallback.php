@@ -11,8 +11,8 @@ namespace DataBuilder\Theme;
 class ThemeFallback
 {
     /** @var ThemeConfig[] cache des configs chargées */
-    private array $configs = [];
-    private string $themesPath;
+    private $configs = [];
+    private $themesPath;
 
     public function __construct(string $themesPath)
     {

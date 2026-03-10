@@ -11,7 +11,7 @@ namespace DataBuilder\Tenant;
  */
 class TenantResolver
 {
-    private string $tenantsPath;
+    private $tenantsPath;
 
     public function __construct(string $tenantsPath)
     {

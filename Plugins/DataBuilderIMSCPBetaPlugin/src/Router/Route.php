@@ -10,14 +10,28 @@ namespace DataBuilder\Router;
  */
 class Route
 {
+    private $method;
+    private $path;
+    private $controller;
+    private $action;
+    private $handle;
+    private $params;
+
     public function __construct(
-        private string $method,
-        private string $path,
-        private string $controller,
-        private string $action,
-        private string $handle,       // Layout handle associé (ex: "user_login")
-        private array  $params = []   // Paramètres dynamiques extraits de l'URL
-    ) {}
+        $method,
+        $path,
+        $controller,
+        $action,
+        $handle,
+        $params = []
+    ) {
+        $this->method     = $method;
+        $this->path       = $path;
+        $this->controller = $controller;
+        $this->action     = $action;
+        $this->handle     = $handle;
+        $this->params     = $params;
+    }
 
     public function getMethod(): string     { return $this->method; }
     public function getPath(): string       { return $this->path; }

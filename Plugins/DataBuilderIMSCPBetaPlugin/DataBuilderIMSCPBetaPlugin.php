@@ -103,6 +103,22 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             }
         );
 
+        // Primary DataBuilder controller injection via onAdminScriptEnd.
+        // Fires with priority 2 — BEFORE layout_init (priority 1) calls
+        // parse('LAYOUT', 'layout'). We set LAYOUT_CONTENT = DataBuilder HTML
+        // so layout_init substitutes {LAYOUT_CONTENT} with our output in ui.tpl.
+        $events->registerListener(
+            [
+                iMSCP_Events::onAdminScriptEnd,
+                iMSCP_Events::onResellerScriptEnd,
+                iMSCP_Events::onClientScriptEnd,
+            ],
+            function (iMSCP_Events_Event $event) {
+                $this->handleScriptEnd($event);
+            },
+            2
+        );
+
         // Register navigation for admin
         $events->registerListener(
             iMSCP_Events::onAdminScriptStart,
@@ -159,12 +175,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
 
         $fileName = basename($templatePath, '.tpl');
 
-        // Pages with a DataBuilder controller are handled by handleAfterTemplateLoad.
+        // Pages registered in config/pages.xml are handled by handleScriptEnd.
         // Do NOT touch rootDir for them — it would corrupt template loading globally.
-        $controllerMap = [
-            'server_statistic' => true,
-        ];
-        if (isset($controllerMap[$fileName])) {
+        if ($this->isPageManaged($fileName)) {
             return;
         }
 
@@ -186,6 +199,62 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
     }
 
     /**
+     * Fires on onAdminScriptEnd / onResellerScriptEnd / onClientScriptEnd at priority 2,
+     * BEFORE layout_init (priority 1). Sets LAYOUT_CONTENT on the TemplateEngine so that
+     * when layout_init calls parse('LAYOUT','layout'), our DataBuilder HTML is substituted
+     * into {LAYOUT_CONTENT} inside ui.tpl.
+     */
+    private function handleScriptEnd(iMSCP_Events_Event $event): void
+    {
+        if (!$this->isDataBuilderThemeActive()) {
+            return;
+        }
+
+        $tpl = $event->getParam('templateEngine');
+        if (!$tpl instanceof \iMSCP\TemplateEngine) {
+            return;
+        }
+
+        // Derive page name from SCRIPT_FILENAME e.g. /admin/server_statistic.php → server_statistic
+        $script = basename($_SERVER['SCRIPT_FILENAME'] ?? '', '.php');
+        if (empty($script)) {
+            return;
+        }
+
+        // Extract all variables already assigned by iMSCP.
+        // iMSCP's assign() stores ALL variables (WEB_IN_ALL, TR_DAY, etc.) in
+        // $this->namespace — NOT in dtplData (which only holds raw template file content).
+        // parse('DAY_LIST', '.day_list') also accumulates its rendered HTML into
+        // $this->namespace['DAY_LIST']. So we only need to read $namespace.
+        // Use Closure::bind — the same technique iMSCP's own Layout.php uses.
+        $imscpTplData = [];
+        try {
+            $getPropertyFn = \Closure::bind(
+                function ($prop) { return $this->$prop; },
+                $tpl,
+                get_class($tpl)
+            );
+            $imscpTplData = $getPropertyFn('namespace') ?: [];
+            $statsDay = isset($imscpTplData['SERVER_STATS_DAY']) ? strlen((string)$imscpTplData['SERVER_STATS_DAY']) : -1;
+            error_log('DataBuilder[scriptEnd]: namespace has ' . count($imscpTplData) . ' keys'
+                . ', SMTP_IN_ALL=' . ($imscpTplData['SMTP_IN_ALL'] ?? 'NOT_SET')
+                . ', DAY_LIST=' . (isset($imscpTplData['DAY_LIST']) ? strlen($imscpTplData['DAY_LIST']) . 'chars' : 'NOT_SET')
+                . ', SERVER_STATS_DAY=' . ($statsDay >= 0 ? $statsDay . 'chars' : 'NOT_SET')
+            );
+        } catch (\Throwable $e) {
+            error_log('DataBuilder[scriptEnd]: could not read namespace: ' . $e->getMessage());
+        }
+
+        $html = $this->executeDataBuilderController($script, $tpl, $imscpTplData);
+        if ($html === null) {
+            return;
+        }
+
+        error_log('DataBuilder[scriptEnd]: injecting ' . strlen($html) . ' bytes for ' . $script);
+        $tpl->assign('LAYOUT_CONTENT', $html);
+    }
+
+    /**
      * Inject DataBuilder controller output into a page template after it loads.
      *
      * Fires on onAfterLoadTemplateFile. When DataBuilder theme is active and a
@@ -202,43 +271,15 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
      */
     private function handleAfterTemplateLoad(iMSCP_Events_Event $event): void
     {
-        if (!$this->isDataBuilderThemeActive()) {
-            return;
-        }
-
-        $context = $event->getParam('context');
-        if (!$context instanceof \iMSCP\TemplateEngine) {
-            return;
-        }
-
-        $templatePath = $event->getParam('templatePath');
-        if (empty($templatePath)) {
-            return;
-        }
-
-        // Only intercept page templates (admin/*, client/*, reseller/*), not layouts.
-        $fileName = basename($templatePath, '.tpl');
-        if (in_array($fileName, ['ui', 'index', 'layout', 'simple'], true)) {
-            return;
-        }
-
-        // Static cache: devide_dynamic calls get_file once and caches dtplData, but
-        // using a static cache here is a safeguard against any double invocation.
-        static $resultCache = [];
-        if (!array_key_exists($fileName, $resultCache)) {
-            $resultCache[$fileName] = $this->executeDataBuilderController($fileName, $context);
-        }
-
-        $controllerResult = $resultCache[$fileName];
-        if ($controllerResult === null) {
-            return;
-        }
-
-        error_log('DataBuilder: injecting controller output for ' . $fileName . ' (' . strlen($controllerResult) . ' bytes)');
-
-        // Plain HTML — no BDP/EDP wrapper. devide_dynamic will see no block markers
-        // and return the HTML as-is, so LAYOUT_CONTENT receives the full output.
-        $event->setParam('templateContent', $controllerResult);
+        // This handler intentionally does NOT replace template content.
+        // Template data (WEB_IN_ALL, DAY_LIST, etc.) is only fully populated
+        // AFTER generatePage() completes — which is AFTER get_file() fires.
+        // Replacing templateContent here would destroy iMSCP's BDP sub-block
+        // structure BEFORE the data is ready, causing 0-byte outputs.
+        //
+        // The actual DataBuilder injection happens in handleScriptEnd() which
+        // fires on onAdminScriptEnd (priority 2) AFTER generatePage() is done.
+        return;
     }
 
     /**
@@ -248,19 +289,16 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
      * @param \iMSCP\TemplateEngine $context Template engine context
      * @return string|null Controller output or null if no controller exists
      */
-    private function executeDataBuilderController(string $pageName, \iMSCP\TemplateEngine $context): ?string
+    private function executeDataBuilderController(string $pageName, \iMSCP\TemplateEngine $context, array $imscpTplData = []): ?string
     {
-        // Map page names to controller classes
-        $controllerMap = [
-            'server_statistic' => 'DataBuilder\\Controller\\ServerStatisticController',
-            // Add more page -> controller mappings here
-        ];
-        
-        if (!isset($controllerMap[$pageName])) {
+        // Resolve controller class from config/pages.xml (no hardcoding needed).
+        $scope           = $this->detectScope();
+        $pages           = $this->loadPagesConfig();
+        $controllerClass = $pages[$scope][$pageName] ?? null;
+        if ($controllerClass === null) {
             return null;
         }
-        
-        $controllerClass = $controllerMap[$pageName];
+        $layoutHandle = $scope . '/' . $pageName;
         
         // Check if controller class exists
         if (!class_exists($controllerClass)) {
@@ -273,9 +311,9 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             
             $registry = new \DataBuilder\Core\Registry();
             $registry->set('config', $config);
-            
-            $layoutManager = new \DataBuilder\Layout\LayoutManager($config, $registry);
-            $blockFactory = new \DataBuilder\Block\BlockFactory($registry);
+            // iMSCP template data was extracted by the caller (handleScriptEnd) via
+            // Closure::bind — the same technique iMSCP's Layout.php uses.
+            $registry->set('imscp_tpl_data', $imscpTplData);
             
             $templateConfig = [
                 'themes_path'  => $config['themes_path'],
@@ -286,14 +324,16 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             ];
             
             $templateEngine = new \DataBuilder\Template\TemplateEngine($templateConfig);
+            $layoutManager  = new \DataBuilder\Layout\LayoutManager($config, $registry);
+            $blockFactory   = new \DataBuilder\Block\BlockFactory($templateEngine);
             
-            // Create route object (method, path, controller, action, handle, params)
+            // Create route — handle = 'scope/pageName' (resolves layout convention).
             $route = new \DataBuilder\Router\Route(
                 'GET',
-                '/admin/' . $pageName,
+                '/' . $scope . '/' . $pageName,
                 $controllerClass,
                 'execute',
-                $pageName,
+                $layoutHandle,
                 []
             );
             
@@ -311,14 +351,80 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
             
         } catch (\Throwable $e) {
             // Log error but don't break the page
-            error_log('DataBuilder Controller Error: ' . $e->getMessage());
+            error_log('DataBuilder Controller Error [' . get_class($e) . ']: ' . $e->getMessage());
+            error_log('DataBuilder Stack: ' . $e->getFile() . ':' . $e->getLine());
             return null;
         }
     }
     
     /**
+     * Load and cache the page registry from config/pages.xml.
+     *
+     * Returns: [ 'admin' => ['server_statistic' => 'DataBuilder\Controller\Admin\...'], ... ]
+     * No PHP changes needed to register a new page — edit config/pages.xml only.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function loadPagesConfig(): array
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        // Each scope has its own file: config/admin/pages.xml, config/reseller/pages.xml, ...
+        // The directory name IS the scope — no attribute needed inside the XML.
+        $result = [];
+        foreach (['admin', 'reseller', 'client'] as $scope) {
+            $file = __DIR__ . '/config/' . $scope . '/pages.xml';
+            if (!file_exists($file)) {
+                continue;
+            }
+            $xml = @simplexml_load_file($file);
+            if ($xml === false) {
+                error_log('DataBuilder: failed to parse config/' . $scope . '/pages.xml');
+                continue;
+            }
+            foreach ($xml->page as $page) {
+                $name = trim((string)$page['name']);
+                $ctrl = trim((string)$page['controller']);
+                if ($name !== '' && $ctrl !== '') {
+                    $result[$scope][$name] = $ctrl;
+                }
+            }
+        }
+
+        return $cache = $result;
+    }
+
+    /**
+     * Detect current request scope (admin|reseller|client) from script path.
+     */
+    private function detectScope(): string
+    {
+        $script = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME'] ?? '');
+        if (strpos($script, '/reseller/') !== false) return 'reseller';
+        if (strpos($script, '/client/')   !== false) return 'client';
+        return 'admin';
+    }
+
+    /**
+     * Returns true if $pageName is registered in pages.xml under any scope.
+     * Used by handleTemplateOverride() to skip rootDir manipulation.
+     */
+    private function isPageManaged(string $pageName): bool
+    {
+        foreach ($this->loadPagesConfig() as $scopePages) {
+            if (isset($scopePages[$pageName])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get DataBuilder configuration from i-MSCP context
-     * 
+     *
      * @param \iMSCP\TemplateEngine $context
      * @return array Configuration array
      */
@@ -329,7 +435,7 @@ class iMSCP_Plugin_DataBuilderIMSCPBetaPlugin extends iMSCP_Plugin_Action
         return [
             'gui_path'          => $imscpRoot . '/gui',
             'plugin_path'      => __DIR__,
-            'theme'            => 'databuilder',
+            'theme'            => 'custom',
             'themes_path'      => __DIR__ . '/themes',
             'modules_path'     => __DIR__ . '/modules',
             'cache_path'       => $imscpRoot . '/gui/data/cache/databuilder-templates',
@@ -795,6 +901,7 @@ function databuilder_get_template_content($template, $data = []) {
             'lostpassword.tpl',
             'message.tpl',
             'functions.php',
+            'theme.xml',
         ];
         
         foreach ($filesToCopy as $file) {
@@ -804,6 +911,17 @@ function databuilder_get_template_content($template, $data = []) {
             }
         }
         
+        // Copy base layouts (default.xml, etc.) — required by LayoutManager to resolve layout files.
+        // Without at least one file here LayoutManager throws "No layout files found".
+        $pluginBaseDir = $pluginThemesDir . '/base';
+        $themeBaseDir  = $databuilderThemeDir . '/base';
+        if (is_dir($pluginBaseDir)) {
+            if (!is_dir($themeBaseDir)) {
+                mkdir($themeBaseDir, 0755, true);
+            }
+            $this->copyDirectory($pluginBaseDir, $themeBaseDir);
+        }
+
         // Copy admin .tpl overrides (server_statistic.tpl, index.tpl, etc.)
         // These must exist in the databuilder theme dir so iMSCP's is_safe() check passes.
         $pluginAdminTplDir = $pluginThemesDir . '/admin';
@@ -891,6 +1009,17 @@ function databuilder_get_template_content($template, $data = []) {
                 mkdir($themeSharedDir, 0755, true);
             }
             $this->copyDirectory($pluginSharedDir, $themeSharedDir);
+        }
+
+        // Copy view/ directory (page.phtml templates for admin/client)
+        $pluginViewDir = $pluginThemesDir . '/view';
+        $themeViewDir  = $databuilderThemeDir . '/view';
+
+        if (is_dir($pluginViewDir)) {
+            if (!is_dir($themeViewDir)) {
+                mkdir($themeViewDir, 0755, true);
+            }
+            $this->copyDirectory($pluginViewDir, $themeViewDir);
         }
         
         // Create/update assets directory (always copy on install/update)

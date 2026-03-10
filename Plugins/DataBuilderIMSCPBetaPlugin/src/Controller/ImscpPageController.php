@@ -10,8 +10,8 @@ namespace DataBuilder\Controller;
 
 class ImscpPageController
 {
-    private array $config;
-    private string $pluginDir;
+    private $config;
+    private $pluginDir;
     
     public function __construct(array $config = [])
     {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder — Registre des pages CLIENT
+    ═══════════════════════════════════════════════════════════════════
+    Ajoutez ici chaque page client gérée par DataBuilder.
+
+    Convention layout : themes/custom/layouts/client/{name}.xml
+    Stub iMSCP requis : themes/client/{name}.tpl
+    ═══════════════════════════════════════════════════════════════════
+-->
+<pages>
+
+    <!-- À activer quand le controller sera créé :
+    <page name="index"
+          controller="DataBuilder\Controller\Client\IndexController"/>
+    -->
+
+</pages>

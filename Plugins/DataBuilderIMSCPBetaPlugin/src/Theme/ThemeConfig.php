@@ -7,9 +7,9 @@ namespace DataBuilder\Theme;
  */
 class ThemeConfig
 {
-    private array $data = [];
-    private bool $loaded = false;
-    private string $themePath;
+    private $data = [];
+    private $loaded = false;
+    private $themePath;
 
     public function __construct(string $themePath)
     {

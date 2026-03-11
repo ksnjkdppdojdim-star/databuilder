@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder Base Layout - default.xml
+    Global default layout loaded for every page handle.
+    Page-specific layouts (e.g. server_statistic.xml) are merged on top of this.
+-->
+<layout>
+</layout>

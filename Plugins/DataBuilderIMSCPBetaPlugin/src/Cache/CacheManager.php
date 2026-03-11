@@ -8,7 +8,7 @@ namespace DataBuilder\Cache;
  */
 class CacheManager
 {
-    private CacheInterface $driver;
+    private $driver;
 
     public function __construct(array $config)
     {
@@ -29,7 +29,7 @@ class CacheManager
         return $this->driver->get($key, $default);
     }
 
-    public function set(string $key, mixed $value, int $ttl = 0): bool
+    public function set(string $key, $value, int $ttl = 0): bool
     {
         return $this->driver->set($key, $value, $ttl);
     }

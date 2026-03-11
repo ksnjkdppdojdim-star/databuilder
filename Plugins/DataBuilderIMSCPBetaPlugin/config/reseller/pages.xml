@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder — Registre des pages RESELLER
+    ═══════════════════════════════════════════════════════════════════
+    Ajoutez ici chaque page reseller gérée par DataBuilder.
+
+    Convention layout : themes/custom/layouts/reseller/{name}.xml
+    Stub iMSCP requis : themes/reseller/{name}.tpl
+    ═══════════════════════════════════════════════════════════════════
+-->
+<pages>
+
+    <!-- À activer quand le controller sera créé :
+    <page name="index"
+          controller="DataBuilder\Controller\Reseller\IndexController"/>
+
+    <page name="users"
+          controller="DataBuilder\Controller\Reseller\UsersController"/>
+    -->
+
+</pages>

@@ -8,9 +8,9 @@ namespace DataBuilder\Tenant;
  */
 class TenantManager
 {
-    private ?TenantConfig $activeTenant = null;
-    private TenantResolver $resolver;
-    private string $tenantsPath;
+    private $activeTenant = null;
+    private $resolver;
+    private $tenantsPath;
 
     public function __construct(array $config)
     {
@@ -50,7 +50,7 @@ class TenantManager
      */
     public function resolveTheme(string $globalTheme): string
     {
-        return $this->activeTenant?->getTheme() ?? $globalTheme;
+        return $this->activeTenant !== null ? $this->activeTenant->getTheme() : $globalTheme;
     }
 
     /**

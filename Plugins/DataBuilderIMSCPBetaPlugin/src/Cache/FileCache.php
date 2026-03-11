@@ -8,7 +8,7 @@ namespace DataBuilder\Cache;
  */
 class FileCache implements CacheInterface
 {
-    private string $cachePath;
+    private $cachePath;
 
     public function __construct(string $cachePath)
     {
@@ -39,7 +39,7 @@ class FileCache implements CacheInterface
         return $data['value'];
     }
 
-    public function set(string $key, mixed $value, int $ttl = 0): bool
+    public function set(string $key, $value, int $ttl = 0): bool
     {
         $data = [
             'value'   => $value,

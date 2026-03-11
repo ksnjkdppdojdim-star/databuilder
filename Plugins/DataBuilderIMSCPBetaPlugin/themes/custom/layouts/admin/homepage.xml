@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Admin > Homepage — Layout DataBuilder
+         Templates  : themes/custom/admin/homepage/*.phtml
+         Controller : DataBuilder\Controller\Admin\HomepageController  (à créer)
+    -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock"
+           htmlTag="div" htmlClass="databuilder-homepage">
+
+        <block name="welcome"
+               class="DataBuilder\Block\ContainerBlock"
+               template="admin/homepage/welcome.phtml"/>
+
+    </block>
+</layout>

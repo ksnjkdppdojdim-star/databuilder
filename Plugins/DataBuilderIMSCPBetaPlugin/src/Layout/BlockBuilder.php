@@ -11,7 +11,7 @@ use DataBuilder\Core\Registry;
  */
 class BlockBuilder
 {
-    private Registry $registry;
+    private $registry;
 
     public function __construct(Registry $registry)
     {

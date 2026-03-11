@@ -1,0 +1,18 @@
+/* DataBuilder - Per-theme variable overrides
+ * Uncomment and edit variables to customize this theme.
+ * All tokens are defined in theme.css :root block.
+ *
+ * Example - light sidebar:
+ * :root {
+ *   --db-sb-bg:#fff;
+ *   --db-sb-t:#374151;
+ *   --db-sb-th:#111827;
+ *   --db-sb-brand:#111827;
+ *   --db-sb-br:#e5e7eb;
+ *   --db-sb-ab:rgba(37,99,235,.07);
+ *   --db-sb-at:#2563eb;
+ * }
+ *
+ * Example - green primary:
+ * :root { --db-p:#16a34a; --db-ph:#15803d; --db-pl:#f0fdf4; }
+ */

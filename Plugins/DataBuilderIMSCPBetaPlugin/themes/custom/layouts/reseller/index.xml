@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Reseller > Index — Layout DataBuilder placeholder
+         Controller : DataBuilder\Controller\Reseller\IndexController  (à créer)
+    -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock"
+           htmlTag="div" htmlClass="databuilder-reseller-index">
+
+        <block name="content"
+               class="DataBuilder\Block\ContainerBlock"
+               template="reseller/index/content.phtml"/>
+
+    </block>
+</layout>

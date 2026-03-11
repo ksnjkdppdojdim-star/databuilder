@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DataBuilder — Registre des pages ADMIN
+    ═══════════════════════════════════════════════════════════════════
+    Ajoutez ici chaque page admin gérée par DataBuilder.
+    DataBuilderIMSCPBetaPlugin.php lit ce fichier automatiquement.
+
+    Pour chaque nouvelle page vous devez :
+      1. Ajouter une ligne <page> ici
+      2. Créer src/Controller/Admin/NomController.php
+      3. Créer themes/custom/layouts/admin/nom_page.xml
+      4. Créer themes/custom/admin/nom_page/*.phtml
+      5. Créer themes/admin/nom_page.tpl  (stub vide — requis par iMSCP)
+
+    Convention layout : themes/custom/layouts/admin/{name}.xml
+    ═══════════════════════════════════════════════════════════════════
+-->
+<pages>
+
+    <page name="server_statistic"
+          controller="DataBuilder\Controller\Admin\ServerStatisticController"/>
+
+    <page name="layout"
+          controller="DataBuilder\Controller\Admin\LayoutController"/>
+
+    <!-- À activer quand le controller sera créé :
+    <page name="admin_log"
+          controller="DataBuilder\Controller\Admin\AdminLogController"/>
+
+    <page name="users"
+          controller="DataBuilder\Controller\Admin\UsersController"/>
+
+    <page name="domains"
+          controller="DataBuilder\Controller\Admin\DomainsController"/>
+
+    <page name="resellers"
+          controller="DataBuilder\Controller\Admin\ResellersController"/>
+
+    <page name="admin"
+          controller="DataBuilder\Controller\Admin\AdminController"/>
+
+    <page name="server_traffic"
+          controller="DataBuilder\Controller\Admin\ServerTrafficController"/>
+    -->
+
+</pages>

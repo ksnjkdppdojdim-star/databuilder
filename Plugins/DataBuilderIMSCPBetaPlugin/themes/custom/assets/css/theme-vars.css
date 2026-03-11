@@ -1,0 +1,29 @@
+/* ============================================================
+   DataBuilder — "custom" theme variable overrides
+   Include AFTER theme.css to override specific design tokens.
+   Only change what you need; all other values fall through to
+   theme.css defaults.
+   ============================================================ */
+
+/*
+:root {
+  Example overrides:
+
+  Sidebar — light instead of dark:
+  --db-sidebar-bg:#f8fafc;
+  --db-sidebar-text:#475569;
+  --db-sidebar-text-hover:#0f172a;
+  --db-sidebar-brand-color:#0f172a;
+  --db-sidebar-border:#e2e8f0;
+  --db-sidebar-active-bg:#eff6ff;
+  --db-sidebar-active-text:#2563eb;
+
+  Brand color — green:
+  --db-primary:#16a34a;
+  --db-primary-hover:#15803d;
+  --db-primary-light:#f0fdf4;
+
+  Wider sidebar:
+  --db-sidebar-width:260px;
+}
+*/

@@ -13,9 +13,9 @@ use DataBuilder\Event\BlockEvent;
  */
 class BlockFactory
 {
-    private array $instances = []; // Cache des instances déjà créées
-    private TemplateEngine $templateEngine;
-    private ?EventDispatcher $eventDispatcher = null;
+    private $instances = []; // Cache des instances déjà créées
+    private $templateEngine;
+    private $eventDispatcher = null;
     
     // Setter
     public function setEventDispatcher(EventDispatcher $dispatcher): void
@@ -58,11 +58,16 @@ class BlockFactory
             return $this->instances[$name];
         }
     
-        $block = match($tag) {
-            'container' => $this->createContainer($name, $attrs),
-            'block'     => $this->createBlock($name, $attrs),
-            default     => throw new \RuntimeException("Unknown layout node tag: [{$tag}]")
-        };
+        switch ($tag) {
+            case 'container':
+                $block = $this->createContainer($name, $attrs);
+                break;
+            case 'block':
+                $block = $this->createBlock($name, $attrs);
+                break;
+            default:
+                throw new \RuntimeException("Unknown layout node tag: [{$tag}]");
+        }
     
         if ($block instanceof AbstractBlock) {
             $block->setTemplateEngine($this->templateEngine);
@@ -89,7 +94,9 @@ class BlockFactory
     // Méthode privée à ajouter
     private function dispatch(object $event): void
     {
-        $this->eventDispatcher?->dispatch($event);
+        if ($this->eventDispatcher !== null) {
+            $this->eventDispatcher->dispatch($event);
+        }
     }
 
     /**
@@ -114,6 +121,23 @@ class BlockFactory
 
         if (!$block instanceof BlockInterface) {
             throw new \RuntimeException("Class [{$class}] must implement BlockInterface");
+        }
+
+        // Explicitly set template — handles subclasses whose constructor ignores the template
+        // argument in favour of other parameters (e.g. ContainerBlock uses position 2 for htmlTag)
+        if ($block instanceof AbstractBlock && $template !== '') {
+            $block->setTemplate($template);
+        }
+
+        // Apply HTML presentation attributes declared in the layout XML
+        if (method_exists($block, 'setHtmlTag') && !empty($attrs['htmlTag'])) {
+            $block->setHtmlTag($attrs['htmlTag']);
+        }
+        if (method_exists($block, 'setHtmlClass') && !empty($attrs['htmlClass'])) {
+            $block->setHtmlClass($attrs['htmlClass']);
+        }
+        if (method_exists($block, 'setHtmlId') && !empty($attrs['htmlId'])) {
+            $block->setHtmlId($attrs['htmlId']);
         }
 
         return $block;

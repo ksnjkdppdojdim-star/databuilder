@@ -12,7 +12,7 @@ $month_list = $block->getData('month_list', '');
 $year_list = $block->getData('year_list', '');
 ?>
 <div class="filter-bar">
-    <form method="post">
+    <form method="get">
         <div class="filter-group">
             <label for="day"><?= $block->e($tr_day) ?></label>
             <select name="day" id="day">

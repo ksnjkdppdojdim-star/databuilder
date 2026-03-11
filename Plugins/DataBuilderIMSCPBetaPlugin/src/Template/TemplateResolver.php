@@ -8,9 +8,9 @@ namespace DataBuilder\Template;
  */
 class TemplateResolver
 {
-    private array $themeChain = [];
-    private string $themesPath;
-    private string $modulesPath;
+    private $themeChain = [];
+    private $themesPath;
+    private $modulesPath;
 
     public function __construct(array $config)
     {
@@ -30,7 +30,13 @@ class TemplateResolver
     {
         // 1. Cherche dans la chaîne de thèmes (du plus spécifique au plus général)
         foreach ($this->themeChain as $theme) {
+            // Standard path: themes/{theme}/templates/{template}
             $path = $this->themesPath . "/{$theme}/templates/{$template}";
+            if (file_exists($path)) {
+                return $path;
+            }
+            // Direct path fallback: themes/{theme}/{template} (no templates/ subdir)
+            $path = $this->themesPath . "/{$theme}/{$template}";
             if (file_exists($path)) {
                 return $path;
             }

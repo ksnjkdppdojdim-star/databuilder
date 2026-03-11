@@ -9,14 +9,14 @@ use DataBuilder\Event\BlockEvent;
 
 abstract class AbstractBlock implements BlockInterface
 {
-    protected string $name     = '';
-    protected string $template = '';
-    protected array  $data     = [];
-    protected array  $children = []; // alias => BlockInterface
-    protected array  $layoutNode = [];
-    protected ?TemplateEngine $templateEngine = null;
+    protected $name     = '';
+    protected $template = '';
+    protected $data     = [];
+    protected $children = []; // alias => BlockInterface
+    protected $layoutNode = [];
+    protected $templateEngine = null;
 
-    protected ?EventDispatcher $eventDispatcher = null;
+    protected $eventDispatcher = null;
     
 
 

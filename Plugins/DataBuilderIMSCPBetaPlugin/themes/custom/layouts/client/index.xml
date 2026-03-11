@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout>
+    <!-- Client > Index — Layout DataBuilder placeholder
+         Controller : DataBuilder\Controller\Client\IndexController  (à créer)
+    -->
+    <block name="root" class="DataBuilder\Block\ContainerBlock"
+           htmlTag="div" htmlClass="databuilder-client-index">
+
+        <block name="content"
+               class="DataBuilder\Block\ContainerBlock"
+               template="client/index/content.phtml"/>
+
+    </block>
+</layout>

@@ -16,10 +16,10 @@ namespace DataBuilder\Tenant;
  */
 class TenantConfig
 {
-    private array $data = [];
-    private bool $loaded = false;
+    private $data = [];
+    private $loaded = false;
 
-    private string $tenantPath;
+    private $tenantPath;
 
     public function __construct(string $tenantPath)
     {

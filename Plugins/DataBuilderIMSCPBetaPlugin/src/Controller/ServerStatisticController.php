@@ -76,283 +76,79 @@ class ServerStatisticController extends AbstractController
     }
 
     /**
-     * Load i-MSCP server statistics data
-     * 
-     * Retrieves server traffic data from the i-MSCP database
-     * 
-     * @return array Server statistics data
+     * Load i-MSCP server statistics data.
+     *
+     * DataBuilder does NOT access the database directly.
+     * All traffic data is read from the iMSCP TemplateEngine's already-processed
+     * variable store (dtplData) that was populated by the original iMSCP page script
+     * before the DataBuilder plugin fires.
+     *
+     * Non-DB system info (OS, kernel, hostname, PHP version) is read from PHP
+     * built-ins — no database dependency whatsoever.
+     *
+     * @return array Data for block templates
      */
     private function loadImscpData(): array
     {
-        $data = [
-            'title' => tr('Server Statistics'),
-            'TR_DAY' => tr('Day'),
-            'TR_MONTH' => tr('Month'),
-            'TR_YEAR' => tr('Year'),
-            'TR_WEB_IN' => tr('Web In'),
-            'TR_WEB_OUT' => tr('Web Out'),
-            'TR_SMTP_IN' => tr('SMTP In'),
-            'TR_SMTP_OUT' => tr('SMTP Out'),
-            'TR_POP_IN' => tr('POP In'),
-            'TR_POP_OUT' => tr('POP Out'),
-            'TR_OTHER_IN' => tr('Other In'),
-            'TR_OTHER_OUT' => tr('Other Out'),
-            'TR_ALL_IN' => tr('Total In'),
-            'TR_ALL_OUT' => tr('Total Out'),
-            'TR_ALL' => tr('Total'),
-            'TR_HOUR' => tr('Hour'),
-            'TR_MONTHLY_STATS' => tr('Monthly Statistics'),
-            'TR_DAILY_STATS' => tr('Daily Statistics'),
+        // Retrieve the snapshot that executeDataBuilderController extracted via Reflection.
+        $tpl = $this->registry->get('imscp_tpl_data') ?: [];
+
+        // Helper: get a value from iMSCP dtplData, falling back to $default.
+        $v = function ($key, $default = '') use ($tpl) {
+            return (isset($tpl[$key]) && $tpl[$key] !== '') ? $tpl[$key] : $default;
+        };
+
+        return [
+            // ── Translated labels (iMSCP already ran tr()) ──────────────────────
+            'TR_DAY'           => $v('TR_DAY',       'Day'),
+            'TR_MONTH'         => $v('TR_MONTH',     'Month'),
+            'TR_YEAR'          => $v('TR_YEAR',      'Year'),
+            'TR_HOUR'          => $v('TR_HOUR',      'Hour'),
+            'TR_WEB_IN'        => $v('TR_WEB_IN',    'Web in'),
+            'TR_WEB_OUT'       => $v('TR_WEB_OUT',   'Web out'),
+            'TR_SMTP_IN'       => $v('TR_SMTP_IN',   'SMTP in'),
+            'TR_SMTP_OUT'      => $v('TR_SMTP_OUT',  'SMTP out'),
+            'TR_POP_IN'        => $v('TR_POP_IN',    'POP3/IMAP in'),
+            'TR_POP_OUT'       => $v('TR_POP_OUT',   'POP3/IMAP out'),
+            'TR_OTHER_IN'      => $v('TR_OTHER_IN',  'Other in'),
+            'TR_OTHER_OUT'     => $v('TR_OTHER_OUT', 'Other out'),
+            'TR_ALL_IN'        => $v('TR_ALL_IN',    'All in'),
+            'TR_ALL_OUT'       => $v('TR_ALL_OUT',   'All out'),
+            'TR_ALL'           => $v('TR_ALL',       'All'),
+            'TR_MONTHLY_STATS' => 'Monthly Statistics',
+            'TR_DAILY_STATS'   => 'Daily Statistics',
+
+            // ── Filter dropdowns (pre-rendered <option> HTML by iMSCP parse()) ─
+            // iMSCP key is uppercase (DAY_LIST) ; templates expect lowercase keys.
+            'day_list'   => $v('DAY_LIST',   ''),
+            'month_list' => $v('MONTH_LIST', ''),
+            'year_list'  => $v('YEAR_LIST',  ''),
+
+            // ── Traffic totals (formatted strings assigned by iMSCP) ────────────
+            'WEB_IN_ALL'   => $v('WEB_IN_ALL',   '0 B'),
+            'WEB_OUT_ALL'  => $v('WEB_OUT_ALL',  '0 B'),
+            'SMTP_IN_ALL'  => $v('SMTP_IN_ALL',  '0 B'),
+            'SMTP_OUT_ALL' => $v('SMTP_OUT_ALL', '0 B'),
+            'POP_IN_ALL'   => $v('POP_IN_ALL',   '0 B'),
+            'POP_OUT_ALL'  => $v('POP_OUT_ALL',  '0 B'),
+            'OTHER_IN_ALL' => $v('OTHER_IN_ALL', '0 B'),
+            'OTHER_OUT_ALL'=> $v('OTHER_OUT_ALL','0 B'),
+            'ALL_IN_ALL'   => $v('ALL_IN_ALL',   '0 B'),
+            'ALL_OUT_ALL'  => $v('ALL_OUT_ALL',  '0 B'),
+            'ALL_ALL'      => $v('ALL_ALL',      '0 B'),
+
+            // ── Per-day rows: pre-rendered <tr> HTML from iMSCP parse() loops ──
+            // SERVER_STATS_DAY is the accumulated HTML from repeated parse() calls.
+            'SERVER_STATS_ROWS' => $v('SERVER_STATS_DAY', ''),
+
+            // ── System info (PHP built-ins, zero DB access) ─────────────────────
+            'os'          => php_uname('s'),
+            'kernel'      => php_uname('r'),
+            'hostname'    => gethostname() ?: 'localhost',
+            'php_version' => PHP_VERSION,
         ];
-
-        // Get date parameters from request (day, month, year)
-        $day = isset($_POST['day']) ? (int)$_POST['day'] : date('j');
-        $month = isset($_POST['month']) ? (int)$_POST['month'] : date('n');
-        $year = isset($_POST['year']) ? (int)$_POST['year'] : date('Y');
-
-        // Build date lists for filter
-        $data['day_list'] = $this->buildDayList($day);
-        $data['month_list'] = $this->buildMonthList($month);
-        $data['year_list'] = $this->buildYearList($year);
-
-        // Calculate date range
-        $startDate = mktime(0, 0, 0, $month, 1, $year);
-        $endDate = mktime(23, 59, 59, $month, date('t', $startDate), $year);
-
-        // Get server traffic data
-        $trafficData = $this->getServerTraffic($startDate, $endDate, 0);
-        
-        $data['WEB_IN_ALL'] = $this->formatBytes($trafficData['web_in']);
-        $data['WEB_OUT_ALL'] = $this->formatBytes($trafficData['web_out']);
-        $data['SMTP_IN_ALL'] = $this->formatBytes($trafficData['smtp_in']);
-        $data['SMTP_OUT_ALL'] = $this->formatBytes($trafficData['smtp_out']);
-        $data['POP_IN_ALL'] = $this->formatBytes($trafficData['pop_in']);
-        $data['POP_OUT_ALL'] = $this->formatBytes($trafficData['pop_out']);
-        $data['OTHER_IN_ALL'] = $this->formatBytes($trafficData['other_in']);
-        $data['OTHER_OUT_ALL'] = $this->formatBytes($trafficData['other_out']);
-        $data['ALL_IN_ALL'] = $this->formatBytes($trafficData['all_in']);
-        $data['ALL_OUT_ALL'] = $this->formatBytes($trafficData['all_out']);
-        $data['ALL_ALL'] = $this->formatBytes($trafficData['all_in'] + $trafficData['all_out']);
-
-        // Get system info
-        $data['os'] = php_uname('s');
-        $data['kernel'] = php_uname('r');
-        $data['hostname'] = gethostname() ?: 'localhost';
-        $data['php_version'] = PHP_VERSION;
-
-        // Get monthly stats for table
-        $data['server_stats_by_month'] = $this->getMonthlyStats($startDate, $endDate);
-
-        return $data;
     }
 
-    /**
-     * Get server traffic data from database
-     * 
-     * @param int $startDate Start timestamp
-     * @param int $endDate End timestamp
-     * @param int $serverId Server ID (0 for all)
-     * @return array Traffic data
-     */
-    private function getServerTraffic(int $startDate, int $endDate, int $serverId = 0): array
-    {
-        $default = [
-            'web_in' => 0, 'web_out' => 0,
-            'smtp_in' => 0, 'smtp_out' => 0,
-            'pop_in' => 0, 'pop_out' => 0,
-            'other_in' => 0, 'other_out' => 0,
-            'all_in' => 0, 'all_out' => 0
-        ];
-
-        // Check if exec_query function exists (i-MSCP context)
-        if (!function_exists('exec_query')) {
-            return $default;
-        }
-
-        try {
-            $stmt = exec_query(
-                'SELECT 
-                    IFNULL(SUM(bytes_web_in), 0) AS swbin,
-                    IFNULL(SUM(bytes_web_out), 0) AS swbout,
-                    IFNULL(SUM(bytes_mail_in), 0) AS smbin,
-                    IFNULL(SUM(bytes_mail_out), 0) AS smbout,
-                    IFNULL(SUM(bytes_pop_in), 0) AS spbin,
-                    IFNULL(SUM(bytes_pop_out), 0) AS spbout,
-                    IFNULL(SUM(bytes_in), 0) AS sbin,
-                    IFNULL(SUM(bytes_out), 0) AS sbout
-                FROM server_traffic
-                WHERE server_id = ? AND traff_time BETWEEN ? AND ?',
-                [$serverId, $startDate, $endDate]
-            );
-
-            if (!$stmt || !$stmt->rowCount()) {
-                return $default;
-            }
-
-            $row = $stmt->fetchRow(\PDO::FETCH_ASSOC);
-            
-            $webIn = $row['swbin'] ?? 0;
-            $webOut = $row['swbout'] ?? 0;
-            $smtpIn = $row['smbin'] ?? 0;
-            $smtpOut = $row['smbout'] ?? 0;
-            $popIn = $row['spbin'] ?? 0;
-            $popOut = $row['spbout'] ?? 0;
-            $allIn = $row['sbin'] ?? 0;
-            $allOut = $row['sbout'] ?? 0;
-
-            return [
-                'web_in' => $webIn,
-                'web_out' => $webOut,
-                'smtp_in' => $smtpIn,
-                'smtp_out' => $smtpOut,
-                'pop_in' => $popIn,
-                'pop_out' => $popOut,
-                'other_in' => $allIn - ($webIn + $smtpIn + $popIn),
-                'other_out' => $allOut - ($webOut + $smtpOut + $popOut),
-                'all_in' => $allIn,
-                'all_out' => $allOut
-            ];
-        } catch (\Exception $e) {
-            return $default;
-        }
-    }
-
-    /**
-     * Get monthly statistics
-     * 
-     * @param int $startDate Start timestamp
-     * @param int $endDate End timestamp
-     * @return array Monthly stats
-     */
-    private function getMonthlyStats(int $startDate, int $endDate): array
-    {
-        // Check if exec_query function exists
-        if (!function_exists('exec_query')) {
-            return [];
-        }
-
-        try {
-            $stmt = exec_query(
-                'SELECT 
-                    FROM_UNIXTIME(traff_time, "%Y-%m-%d") AS traffic_date,
-                    IFNULL(SUM(bytes_web_in), 0) AS swbin,
-                    IFNULL(SUM(bytes_web_out), 0) AS swbout,
-                    IFNULL(SUM(bytes_mail_in), 0) AS smbin,
-                    IFNULL(SUM(bytes_mail_out), 0) AS smbout,
-                    IFNULL(SUM(bytes_pop_in), 0) AS spbin,
-                    IFNULL(SUM(bytes_pop_out), 0) AS spbout,
-                    IFNULL(SUM(bytes_in), 0) AS sbin,
-                    IFNULL(SUM(bytes_out), 0) AS sbout
-                FROM server_traffic
-                WHERE server_id = 0 AND traff_time BETWEEN ? AND ?
-                GROUP BY traffic_date
-                ORDER BY traffic_date ASC',
-                [$startDate, $endDate]
-            );
-
-            if (!$stmt || !$stmt->rowCount()) {
-                return [];
-            }
-
-            $stats = [];
-            while ($row = $stmt->fetchRow(\PDO::FETCH_ASSOC)) {
-                $stats[] = [
-                    'date' => $row['traffic_date'],
-                    'web_in' => $this->formatBytes($row['swbin']),
-                    'web_out' => $this->formatBytes($row['swbout']),
-                    'smtp_in' => $this->formatBytes($row['smbin']),
-                    'smtp_out' => $this->formatBytes($row['smbout']),
-                    'pop_in' => $this->formatBytes($row['spbin']),
-                    'pop_out' => $this->formatBytes($row['spbout']),
-                    'other_in' => $this->formatBytes($row['sbin'] - ($row['swbin'] + $row['smbin'] + $row['spbin'])),
-                    'other_out' => $this->formatBytes($row['sbout'] - ($row['swbout'] + $row['smbout'] + $row['spbout'])),
-                    'all_in' => $this->formatBytes($row['sbin']),
-                    'all_out' => $this->formatBytes($row['sbout']),
-                    'total' => $this->formatBytes($row['sbin'] + $row['sbout'])
-                ];
-            }
-
-            return $stats;
-        } catch (\Exception $e) {
-            return [];
-        }
-    }
-
-    /**
-     * Build day dropdown options
-     * 
-     * @param int $selected Selected day
-     * @return string HTML options
-     */
-    private function buildDayList(int $selected): string
-    {
-        $html = '';
-        for ($i = 1; $i <= 31; $i++) {
-            $selectedAttr = ($i === $selected) ? ' selected="selected"' : '';
-            $html .= '<option value="' . $i . '"' . $selectedAttr . '>' . str_pad($i, 2, '0', STR_PAD_LEFT) . '</option>';
-        }
-        return $html;
-    }
-
-    /**
-     * Build month dropdown options
-     * 
-     * @param int $selected Selected month
-     * @return string HTML options
-     */
-    private function buildMonthList(int $selected): string
-    {
-        $months = [
-            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
-            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
-            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
-        ];
-        
-        $html = '';
-        foreach ($months as $num => $name) {
-            $selectedAttr = ($num === $selected) ? ' selected="selected"' : '';
-            $html .= '<option value="' . $num . '"' . $selectedAttr . '>' . tr($name) . '</option>';
-        }
-        return $html;
-    }
-
-    /**
-     * Build year dropdown options
-     * 
-     * @param int $selected Selected year
-     * @return string HTML options
-     */
-    private function buildYearList(int $selected): string
-    {
-        $currentYear = (int)date('Y');
-        $html = '';
-        for ($i = $currentYear - 5; $i <= $currentYear; $i++) {
-            $selectedAttr = ($i === $selected) ? ' selected="selected"' : '';
-            $html .= '<option value="' . $i . '"' . $selectedAttr . '>' . $i . '</option>';
-        }
-        return $html;
-    }
-
-    /**
-     * Format bytes to human readable string
-     * 
-     * @param int|float $bytes Bytes to format
-     * @return string Formatted string
-     */
-    private function formatBytes($bytes): string
-    {
-        $bytes = max(0, (float)$bytes);
-        if ($bytes == 0) {
-            return '0 B';
-        }
-
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $pow = floor(log($bytes, 1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, 2) . ' ' . $units[$pow];
-    }
 
     /**
      * Populate blocks with data
@@ -363,19 +159,21 @@ class ServerStatisticController extends AbstractController
      */
     private function populateBlocks(ContainerBlock $rootBlock, array $data): void
     {
-        // Set data on root block (will be accessible to all children)
-        foreach ($data as $key => $value) {
-            $rootBlock->setData($key, $value);
-        }
+        // Propagate all data to the root block and every descendant so that
+        // each block's .phtml template can read $block->getData(...).
+        $this->propagateData($rootBlock, $data);
+    }
 
-        // If using nested blocks, populate them specifically
-        $content = $rootBlock->getChild('content');
-        if ($content instanceof ContainerBlock) {
-            // Get stats table block
-            $statsTable = $content->getChild('stats_table');
-            if ($statsTable instanceof ContainerBlock) {
-                // Additional stats table specific data can be set here
-            }
+    /**
+     * Recursively assigns $data to a block and all its descendants.
+     */
+    private function propagateData(\DataBuilder\Block\BlockInterface $block, array $data): void
+    {
+        if ($block instanceof \DataBuilder\Block\AbstractBlock) {
+            $block->assignData($data);
+        }
+        foreach ($block->getChildren() as $child) {
+            $this->propagateData($child, $data);
         }
     }
 }

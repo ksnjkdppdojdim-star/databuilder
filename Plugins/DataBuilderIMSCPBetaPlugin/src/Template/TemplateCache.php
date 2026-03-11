@@ -13,7 +13,7 @@ namespace DataBuilder\Template;
  */
 class TemplateCache
 {
-    private string $cachePath;
+    private $cachePath;
 
     public function __construct(string $cachePath)
     {

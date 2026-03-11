@@ -10,8 +10,8 @@ namespace DataBuilder\Theme;
 
 class ImscpThemeFallback
 {
-    private array $config;
-    private string $pluginDir;
+    private $config;
+    private $pluginDir;
     
     public function __construct(array $config = [], string $pluginDir = '')
     {

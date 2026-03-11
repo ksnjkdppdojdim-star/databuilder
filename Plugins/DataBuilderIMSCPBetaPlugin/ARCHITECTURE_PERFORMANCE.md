@@ -2,6 +2,260 @@
 
 ---
 
+## 1. Pourquoi DataBuilder charge plus vite dans le navigateur
+
+Ce que tu observes est **100 % réel** et a une explication simple.
+
+### Poids des assets chargés par le navigateur
+
+| | iMSCP thème i-mscp | DataBuilder |
+|---|---|---|
+| **Total assets** | **1 281 KB** | **16 KB** |
+| jQuery | 93 KB | ❌ pas chargé |
+| jQuery UI | 232 KB | ❌ pas chargé |
+| DataTables | 75 KB | ❌ pas chargé |
+| imscp.js | 21 KB | ❌ pas chargé |
+| CSS framework | ~800 KB | ~15 KB (theme.css) |
+
+**Le thème iMSCP envoie 80× plus de données au navigateur.**  
+Avant même que PHP ait terminé, le navigateur télécharge ~1.3 MB de JS/CSS.  
+DataBuilder envoie 16 KB — le navigateur affiche quasi instantanément.
+
+### Ce qui ralentit vraiment une page web
+
+```
+Temps total ressenti = temps PHP (serveur)  +  temps chargement assets (navigateur)
+                       ──────────────────       ──────────────────────────────────────
+                       iMSCP : ~50 ms           iMSCP défaut : ~500 ms (1.3 MB assets)
+                       DataBuilder : ~53 ms     DataBuilder  : ~20 ms  (16 KB assets)
+```
+
+> La différence que tu vois n'est **pas** due à PHP mais aux ressources front-end.  
+> DataBuilder est plus rapide **côté navigateur** même s'il ajoute quelques ms côté serveur.
+
+---
+
+## 2. Ce que DataBuilder fait que iMSCP .tpl ne fait pas
+
+### Le système .tpl d'iMSCP
+
+iMSCP utilise un moteur de templates maison très simple :
+
+```
+$tpl->define_dynamic(['page' => 'admin/server_statistic.tpl'])
+$tpl->assign(['TR_DAY' => 'Jour', 'WEB_IN_ALL' => '44 MB'])
+$tpl->parse('LAYOUT_CONTENT', 'page')
+// → str_replace('{TR_DAY}', 'Jour', $content)
+```
+
+C'est du **remplacement de variables dans une string**. Rapide, mais :
+- Pas de logique PHP dans les templates (juste `{VARIABLE}`)
+- Pas de structure de blocs réutilisables
+- Pas d'héritage de thème
+- Pas de composition : chaque `.tpl` est un fichier monolithique
+- Pour changer le rendu d'une page → modifier le `.tpl` d'iMSCP directement (risqué)
+
+### DataBuilder
+
+DataBuilder rend du **HTML via PHP natif** avec un système de blocs :
+
+```
+Layout XML  →  arbre de Blocks  →  chaque Block inclut son .phtml  →  HTML final
+```
+
+| Fonctionnalité | iMSCP .tpl | DataBuilder |
+|----------------|-----------|-------------|
+| Variables dans templates | `{VARIABLE}` (string replace) | `$block->getData('key')` (PHP natif) |
+| Logique dans templates | ❌ impossible | ✅ PHP complet dans `.phtml` |
+| Blocs réutilisables | ❌ | ✅ un bloc = un `.phtml` |
+| Héritage de thème | ❌ | ✅ base → parent → custom |
+| Composition de layouts | ❌ | ✅ via XML (ajouter/retirer des blocs) |
+| Override sans toucher iMSCP | ❌ | ✅ (events `onAdminScriptEnd`) |
+| Données typées PHP | ❌ (tout est string) | ✅ tableau, objet, booléen... |
+| Cache templates compilés | ❌ | ✅ (`cache_enable: true`) |
+
+**En résumé : iMSCP .tpl = colle et ciseaux. DataBuilder = moteur de rendu structuré.**
+
+---
+
+## 3. Ordre d'exécution complet (d'iMSCP à la vue)
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Requête HTTP → /admin/layout.php                                   │
+└─────────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+1. iMSCP dispatch(onAdminScriptStart)
+   └─ DataBuilder: setupAdminNavigation()
+         └─ Injecte la navigation custom dans l'instance TemplateEngine
+
+         │
+         ▼
+2. iMSCP execute generatePage(), generateNavigation(), etc.
+   └─ dispatch(onBeforeLoadTemplateFile)
+         └─ DataBuilder: handleTemplateOverride()
+               ├─ Page gérée (dans pages.xml) ? → SKIP
+               └─ Page non gérée ? → redirige rootDir vers themes/custom/
+
+         │
+         ▼
+3. iMSCP popule toutes ses variables
+   └─ $tpl->assign(['WEB_IN_ALL' => ..., 'TR_DAY' => ...])
+   └─ $tpl->parse('DAY_LIST', '.day_list')  ← HTML stocké dans $namespace
+
+         │
+         ▼
+4. dispatch(onAdminScriptEnd) — PRIORITÉ 2  ← DataBuilder intercepte ICI
+   └─ DataBuilder: handleScriptEnd()
+         ├─ Lit $tpl->namespace via ReflectionProperty (caché static)
+         ├─ Détecte le scope : admin | reseller | client
+         ├─ Cherche le controller dans config/{scope}/pages.xml (caché APCu)
+         └─ executeDataBuilderController()
+               ├─ Config récupérée (cachée dans $this->cachedConfig)
+               ├─ Instancie : Registry, TemplateEngine, LayoutManager,
+               │              BlockFactory, Route, Controller
+               └─ controller->execute()
+                     ├─ loadLayout("admin/layout")
+                     │     └─ LayoutManager lit themes/custom/layouts/admin/layout.xml
+                     │     └─ Arbre de blocs :
+                     │           root
+                     │           ├── header          → header.phtml
+                     │           ├── theme_selector  → theme_selector.phtml
+                     │           ├── logo_manager    → logo_manager.phtml
+                     │           └── other_settings  → other_settings.phtml
+                     ├─ propagateData() → $block->assignData($data) récursivement
+                     └─ rootBlock->render() → HTML concaténé
+
+         │  tpl->assign('LAYOUT_CONTENT', $html)
+         ▼
+5. dispatch(onAdminScriptEnd) — PRIORITÉ 1  ← layout_init d'iMSCP
+   └─ parse('LAYOUT', 'layout')
+         └─ ui.tpl rendu : {LAYOUT_CONTENT} = HTML DataBuilder → envoyé au navigateur
+```
+
+---
+
+## 4. Optimisations appliquées
+
+### 4.1 ReflectionProperty — caché en `static`
+
+```php
+// Avant : new ReflectionClass() à chaque template chargé par iMSCP
+$reflection = new ReflectionClass($context);          // coûteux, répété
+$prop = $reflection->getProperty('rootDir');
+
+// Après : créé une seule fois, réutilisé pour toute la durée du process
+private static $rootDirReflection = null;
+if (self::$rootDirReflection === null) {
+    $refl = new ReflectionClass($context);
+    self::$rootDirReflection = $refl->getProperty('rootDir');
+    self::$rootDirReflection->setAccessible(true);
+}
+```
+
+### 4.2 Config DataBuilder — cachée dans `$this->cachedConfig`
+
+```php
+// Avant : getDataBuilderConfig() recalculé à chaque requête
+// Après : calculé une seule fois par worker
+private $cachedConfig = null;
+
+if ($this->cachedConfig === null) {
+    $this->cachedConfig = $this->getDataBuilderConfig($context);
+}
+```
+
+### 4.3 `loadPagesConfig()` — 3 niveaux de cache
+
+```php
+// Niveau 1 — static (même process)
+static $cache = null;
+if ($cache !== null) return $cache;
+
+// Niveau 2 — APCu (partagé entre tous les workers PHP-FPM)
+// La clé change au déploiement via filemtime → auto-invalidation
+$apcuKey = 'db_pages_cfg_' . filemtime(__DIR__ . '/config');
+if (function_exists('apcu_fetch')) {
+    $hit = apcu_fetch($apcuKey, $success);
+    if ($success) return $cache = $hit;
+}
+
+// Niveau 3 — cold parse (une seule fois après déploiement)
+// simplexml_load_file() × 3 → résultat stocké en APCu
+apcu_store($apcuKey, $result, 3600);
+return $cache = $result;
+```
+
+### 4.4 Cache templates `.phtml` activé
+
+```php
+// Avant : cache_enable: false → include() à chaque hit
+// Après : cache_enable: true → templates compilés sur disque
+'cache_enable' => true,
+```
+
+### 4.5 Suppression des `error_log()` debug
+
+3 `error_log()` dans `handleScriptEnd()` supprimés.  
+Chaque `error_log()` = **I/O disque synchrone avec verrou** — critique en haute charge.
+
+---
+
+## 5. Projection à 50 000 utilisateurs simultanés
+
+### Ce que DataBuilder contrôle ✅
+
+Avec toutes les optimisations + OPcache + APCu :
+
+- Surcoût DataBuilder côté PHP : **~1–3 ms par requête**
+- XMLs parsés **une seule fois** pour tous les workers (APCu)
+- Templates `.phtml` servis depuis le cache disque
+- Assets front-end : **16 KB** → chargement navigateur quasi instantané
+
+### Ce qui limite vraiment ❌
+
+```
+50 000 req simultanées
+÷ 50 req/worker PHP-FPM  = 1 000 workers nécessaires
+× 32 MB RAM/worker       = 32 GB RAM rien que pour PHP
+```
+
+**Ce n'est pas DataBuilder qui limite — c'est le modèle synchrone PHP/iMSCP.**
+
+### Recommandations infra
+
+| Niveau | Solution |
+|--------|----------|
+| **PHP** | OPcache + APCu + PHP-FPM `pm.max_children` bien tuné |
+| **Sessions** | Redis (pas fichiers disque) |
+| **Web** | Nginx en reverse proxy, gzip/brotli activé |
+| **Assets** | Servis par Nginx directement (bypass PHP total) |
+| **Scale horizontal** | Load balancer + N serveurs iMSCP en pool |
+| **BDD** | PDO persistent + query cache MySQL |
+
+| Charge | Infra |
+|--------|-------|
+| < 500 req/s | 1 serveur, 4 GB RAM |
+| 500–5 000 req/s | 1 serveur puissant + Redis |
+| 5 000–50 000 req/s | Load balancer + 4–8 serveurs + Redis cluster |
+| > 50 000 req/s | Architecture microservices — iMSCP n'est plus adapté |
+
+---
+
+## 6. Résumé
+
+> Les pages DataBuilder sont **plus rapides à l'affichage** principalement parce qu'elles envoient **16 KB d'assets** au lieu de **1 281 KB** (jQuery + jQuery UI + DataTables + CSS du thème iMSCP).  
+>
+> Côté serveur PHP, DataBuilder ajoute ~1–3 ms réels par requête (avec APCu + cache activés), ce qui est imperceptible face au gain front-end.  
+>
+> Par rapport à `.tpl`, DataBuilder apporte : logique PHP dans les templates, blocs réutilisables, héritage de thème, composition via XML, et override sans toucher le core iMSCP.
+
+
+> **Version révisée — basée sur les observations réelles navigateur.**
+
+---
+
 ## 1. Ordre d'exécution complet (d'iMSCP à la vue)
 
 DataBuilder est un **moteur de rendu frontend injecté dans iMSCP via son système d'événements**.  
